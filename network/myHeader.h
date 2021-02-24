@@ -46,3 +46,4 @@ pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
 int ethernetHeader(const u_char *packet);
 int ipHeader(const u_char *packet);
 int tcpHeader(const u_char *packet);
+int getGateWayAddress();

@@ -26,6 +26,7 @@ int main()
 	pcap_freealldevs(alldevs);
 
 	/* interpret packet */
+	/*
 	int res;
 	while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)
 	{
@@ -37,6 +38,8 @@ int main()
 		printf("Error reading the packets: %s\n", pcap_geterr(handle));
 		return -1;
 	}
+	*/
+	getGateWayAddress();
 	pcap_close(handle);
 	return 0;
 }

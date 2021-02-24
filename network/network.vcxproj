@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="ChoiceDev.c" />
     <ClCompile Include="ethernetHeader.c" />
+    <ClCompile Include="getGateWayAddress.c" />
     <ClCompile Include="ipHeader.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="tcpHeader.c" />
