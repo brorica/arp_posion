@@ -4,7 +4,7 @@ int main()
 {
 	pcap_if_t *alldevs, *choiceDev;
 	pcap_t *handle;
-	char gateWayAddr[32];
+	char gateWayAddress[32];
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	/* Retrieve the device list from the local machine */
@@ -23,7 +23,7 @@ int main()
 	}
 	/* now, we don't need any more the devices list */
 	pcap_freealldevs(alldevs);
-
+	getGateWayAddress(choiceDev, gateWayAddress);
 	/* interpret packet */
 	/*
 	int res;
@@ -38,7 +38,7 @@ int main()
 		return -1;
 	}
 	*/
-	getGateWayAddress(choiceDev, gateWayAddr);
+	sendARP(handle, gateWayAddress);
 	pcap_close(handle);
 	return 0;
 }

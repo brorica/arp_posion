@@ -1,12 +1,9 @@
 #include "myHeader.h"
 #include <winsock2.h>
 #include <iphlpapi.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #pragma comment(lib, "IPHLPAPI.lib")
 
-int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddr)
+int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddress)
 {
 	PIP_ADAPTER_INFO pAdapterInfo;
 	PIP_ADAPTER_INFO pAdapter = NULL;
@@ -30,32 +27,20 @@ int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddr)
 			return 1;
 		}
 	}
-	char choiceDevIP[32];
 
+	/* copy choiceDev's IP address */
+	char choiceDevIP[32];
 	memcpy(choiceDevIP, iptos(dev_address->sin_addr.s_addr), sizeof(choiceDevIP));
 	if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
-		pAdapter = pAdapterInfo;
-		while (pAdapter) {
+		for(pAdapter = pAdapterInfo; pAdapter!=NULL; pAdapter = pAdapter->Next) {
 			/* find choiced dev's gateway IP */
 			if (strcmp(pAdapter->IpAddressList.IpAddress.String, choiceDevIP) == 0)
 			{
-				//				printf("OK, choiceDev->addresses : %s\n", iptos(((struct sockaddr_in *)dev_address->addr)->sin_addr.s_addr));
-				printf("OK, choiceDev->addresses : %s\n", choiceDevIP);
-				printf("OK, pAdapter->IpAddressList.IpAddress.String : %s\n", pAdapter->IpAddressList.IpAddress.String);
-				memcpy(gateWayAddr, pAdapter->GatewayList.IpAddress.String, sizeof(pAdapter->GatewayList.IpAddress.String));
-				printf("gateWayAddr : %s\n", gateWayAddr);
+				//printf("choiceDev->addresses : %s\n", choiceDevIP);
+				//printf("pAdapter->IpAddressList.IpAddress.String : %s\n", pAdapter->IpAddressList.IpAddress.String);
+				memcpy(gateWayAddress, pAdapter->GatewayList.IpAddress.String, sizeof(pAdapter->GatewayList.IpAddress.String));
+				//printf("gateWayAddr : %s\n", gateWayAddress);
 			}
-			pAdapter = pAdapter->Next;
-			continue;
-
-			printf("\tIP Address: \t%s\n",
-				pAdapter->IpAddressList.IpAddress.String);
-			printf("\tIP Mask: \t%s\n", pAdapter->IpAddressList.IpMask.String);
-
-			printf("\tGateway: \t%s\n", pAdapter->GatewayList.IpAddress.String);
-			printf("\t***\n");
-			pAdapter = pAdapter->Next;
-			printf("\n");
 		}
 	}
 	else {
@@ -64,6 +49,5 @@ int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddr)
 	}
 	if (pAdapterInfo)
 		free(pAdapterInfo);
-
 	return 0;
 }

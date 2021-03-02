@@ -1,6 +1,7 @@
 #include <pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <Windows.h>
 
 typedef struct ethernet_header
@@ -46,5 +47,6 @@ pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
 int ethernetHeader(const u_char *packet);
 int ipHeader(const u_char *packet);
 int tcpHeader(const u_char *packet);
-int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddr);
+int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddress);
 char *iptos(u_long in);
+int sendARP(pcap_t *handle, char * gateWayAddress);

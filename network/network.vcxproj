@@ -152,6 +152,7 @@
     <ClCompile Include="getGateWayAddress.c" />
     <ClCompile Include="ipHeader.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="sendARP.c" />
     <ClCompile Include="tcpHeader.c" />
   </ItemGroup>
   <ItemGroup>
