@@ -4,8 +4,7 @@ int main()
 {
 	pcap_if_t *alldevs, *choiceDev;
 	pcap_t *handle;
-	struct pcap_pkthdr *header;	/* The header that pcap gives us */
-	const u_char *packet;
+	char gateWayAddr[32];
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	/* Retrieve the device list from the local machine */
@@ -39,7 +38,7 @@ int main()
 		return -1;
 	}
 	*/
-	getGateWayAddress();
+	getGateWayAddress(choiceDev, gateWayAddr);
 	pcap_close(handle);
 	return 0;
 }
