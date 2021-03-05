@@ -39,7 +39,7 @@ int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddress)
 				//printf("choiceDev->addresses : %s\n", choiceDevIP);
 				//printf("pAdapter->IpAddressList.IpAddress.String : %s\n", pAdapter->IpAddressList.IpAddress.String);
 				memcpy(gateWayAddress, pAdapter->GatewayList.IpAddress.String, sizeof(pAdapter->GatewayList.IpAddress.String));
-				//printf("gateWayAddr : %s\n", gateWayAddress);
+				printf("gateWayAddr : %s\n", gateWayAddress);
 			}
 		}
 	}

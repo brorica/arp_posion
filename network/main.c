@@ -2,8 +2,8 @@
 
 int main()
 {
-	pcap_if_t *alldevs, *choiceDev;
-	pcap_t *handle;
+	pcap_if_t* alldevs, * choiceDev;
+	pcap_t* handle;
 	char gateWayAddress[32];
 	char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -23,8 +23,11 @@ int main()
 	}
 	/* now, we don't need any more the devices list */
 	pcap_freealldevs(alldevs);
+
+	/* find Device's GateWay IP address */
 	getGateWayAddress(choiceDev, gateWayAddress);
-	/* interpret packet */
+
+
 	/*
 	int res;
 	while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)

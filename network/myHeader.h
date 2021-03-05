@@ -11,7 +11,6 @@ typedef struct ethernet_header
 	u_short ether_Type;
 }ethernet_header;
 
-
 /* 4 bytes IP address */
 typedef struct ip_address {
 	u_char byte1;

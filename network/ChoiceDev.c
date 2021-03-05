@@ -17,7 +17,7 @@ pcap_if_t * ChoiceDev(pcap_if_t * alldevs)
 {
 	pcap_if_t *alldevsTemp;
 	pcap_addr_t * dev_address;
-	u_int choice, devNumber = 1;
+	u_int i, choice, devNumber = 1;
 
 	alldevsTemp = alldevs;
 	/* Print the list */
@@ -52,8 +52,6 @@ pcap_if_t * ChoiceDev(pcap_if_t * alldevs)
 		else
 			break;
 	}
-	choiceDev = alldevs;
-	for (u_int i = 0; i < choice; i++)
-		choiceDev = choiceDev->next;
+	for (choiceDev = alldevs, i = 0; i < choice - 1; choiceDev = choiceDev->next, i++);
 	return choiceDev;
 }
