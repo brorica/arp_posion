@@ -6,6 +6,8 @@
 #include <winsock2.h>
 
 #define MACLEN 6
+#define ARPSIZE 28
+#define ETHERNETSIZE 14
 
 typedef struct ethernet_header
 {
@@ -57,12 +59,15 @@ typedef struct tcp_header
 	u_short dst_port; // Destination port
 }tcp_header, *Ptcp_header;
 
-typedef struct DeviceInfo
+typedef struct LANINFO
 {
-	IN_ADDR ipAddress;
-	IN_ADDR gateWayAddress;
-	u_char macAddress[MACLEN];
-}DeviceInfo, *PDeviceInfo;
+	IN_ADDR  myIP;
+	u_char myMAC[MACLEN];
+	IN_ADDR  victimIP;
+	u_char victimMAC[MACLEN];
+	IN_ADDR gatewayIP;
+	u_char gatewayMAC[MACLEN];
+}LANINFO, * PLANINFO;
 
 
 /* ChoiceDev.c */
@@ -70,6 +75,7 @@ pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
 int ethernetHeader(const u_char *packet);
 int ipHeader(const u_char *packet);
 int tcpHeader(const u_char *packet);
-int getGateWayAddress(pcap_if_t * choiceDev, PDeviceInfo myDeviceInfo);
+int getGateWayAddress(pcap_if_t * choiceDev, PLANINFO LanInfo);
 char *iptos(u_long in);
-int getVictimMAC(pcap_t *handle, PDeviceInfo myDeviceInfo, PDeviceInfo victimDeviceInfo);
+int getMACAddress(pcap_t *handle, PLANINFO LanInfo);
+int sendFakeARP(pcap_t* handle, PLANINFO LanInfo);

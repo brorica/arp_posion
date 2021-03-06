@@ -33,7 +33,10 @@
     <ClCompile Include="getGateWayAddress.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="sendARP.c">
+    <ClCompile Include="sendFakeARP.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="getMACAddress.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
