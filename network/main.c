@@ -2,10 +2,11 @@
 
 int main()
 {
+	DeviceInfo myDeviceInfo, victimDeviceInfo;
 	pcap_if_t* alldevs, * choiceDev;
 	pcap_t* handle;
-	char gateWayAddress[32];
 	char errbuf[PCAP_ERRBUF_SIZE];
+	char victimIP[16] = "192.168.50.146";
 
 	/* Retrieve the device list from the local machine */
 	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
@@ -25,7 +26,7 @@ int main()
 	pcap_freealldevs(alldevs);
 
 	/* find Device's GateWay IP address */
-	getGateWayAddress(choiceDev, gateWayAddress);
+	getGateWayAddress(choiceDev, &myDeviceInfo);
 
 
 	/*
@@ -41,7 +42,11 @@ int main()
 		return -1;
 	}
 	*/
-	sendARP(handle, gateWayAddress);
+	//printf("Input vicim's IP Address : ");
+	//scanf("%s", victimIP);
+	memset(&victimDeviceInfo, 0, sizeof(DeviceInfo));
+	victimDeviceInfo.ipAddress.S_un.S_addr = inet_addr(victimIP);
+	getVictimMAC(handle, &myDeviceInfo, &victimDeviceInfo);
 	pcap_close(handle);
 	return 0;
 }

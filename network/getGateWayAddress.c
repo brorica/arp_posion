@@ -1,9 +1,8 @@
 #include "myHeader.h"
-#include <winsock2.h>
 #include <iphlpapi.h>
 #pragma comment(lib, "IPHLPAPI.lib")
 
-int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddress)
+int getGateWayAddress(pcap_if_t * choiceDev, PDeviceInfo myDeviceInfo)
 {
 	PIP_ADAPTER_INFO pAdapterInfo;
 	PIP_ADAPTER_INFO pAdapter = NULL;
@@ -28,24 +27,30 @@ int getGateWayAddress(pcap_if_t * choiceDev, char * gateWayAddress)
 		}
 	}
 
-	/* copy choiceDev's IP address */
-	char choiceDevIP[32];
+	/* copy choiceDev's Info */
+	char choiceDevIP[16];
 	memcpy(choiceDevIP, iptos(dev_address->sin_addr.s_addr), sizeof(choiceDevIP));
 	if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
 		for(pAdapter = pAdapterInfo; pAdapter!=NULL; pAdapter = pAdapter->Next) {
 			/* find choiced dev's gateway IP */
-			if (strcmp(pAdapter->IpAddressList.IpAddress.String, choiceDevIP) == 0)
+			if (strncmp(pAdapter->IpAddressList.IpAddress.String, choiceDevIP, sizeof(choiceDevIP)) == 0)
 			{
-				//printf("choiceDev->addresses : %s\n", choiceDevIP);
-				//printf("pAdapter->IpAddressList.IpAddress.String : %s\n", pAdapter->IpAddressList.IpAddress.String);
-				memcpy(gateWayAddress, pAdapter->GatewayList.IpAddress.String, sizeof(pAdapter->GatewayList.IpAddress.String));
-				printf("gateWayAddr : %s\n", gateWayAddress);
+				myDeviceInfo->gateWayAddress.S_un.S_addr = inet_addr(pAdapter->GatewayList.IpAddress.String);
+				myDeviceInfo->ipAddress.S_un.S_addr = inet_addr(pAdapter->IpAddressList.IpAddress.String);
+				printf("MAC ADDRESS : ");
+				for (UINT i = 0; i < pAdapter->AddressLength; i++) {
+					myDeviceInfo->macAddress[i] = (int)pAdapter->Address[i];
+					if (i == (pAdapter->AddressLength - 1))
+						printf("%.2X\n", myDeviceInfo->macAddress[i]);
+					else
+						printf("%.2X-", myDeviceInfo->macAddress[i]);
+				}
+				printf("gateWayAddr : %s\n", inet_ntoa(myDeviceInfo->gateWayAddress));
 			}
 		}
 	}
 	else {
 		printf("GetAdaptersInfo failed with error: %d\n", dwRetVal);
-
 	}
 	if (pAdapterInfo)
 		free(pAdapterInfo);
