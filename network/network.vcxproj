@@ -150,12 +150,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ChoiceDev.c" />
-    <ClCompile Include="ethernetHeader.c" />
+    <ClCompile Include="checkARP.c" />
     <ClCompile Include="getGateWayAddress.c" />
     <ClCompile Include="ipHeader.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="getMACAddress.c" />
     <ClCompile Include="sendFakeARP.c" />
+    <ClCompile Include="SetArpHeader.cpp" />
     <ClCompile Include="tcpHeader.c" />
   </ItemGroup>
   <ItemGroup>

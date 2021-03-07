@@ -69,13 +69,25 @@ typedef struct LANINFO
 	u_char gatewayMAC[MACLEN];
 }LANINFO, * PLANINFO;
 
+typedef struct HEADER
+{
+	ethernet_header ethernet;
+	arp_header arp;
+	tcp_header tcp;
+}HEADER, *PHEADER;
+
 
 /* ChoiceDev.c */
 pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
-int ethernetHeader(const u_char *packet);
+int checkARP(pcap_t* handle, const u_char *packet, PLANINFO LanInfo);
 int ipHeader(const u_char *packet);
 int tcpHeader(const u_char *packet);
+/* getGateWayAddress */
 int getGateWayAddress(pcap_if_t * choiceDev, PLANINFO LanInfo);
 char *iptos(u_long in);
+/* getMACAddress.c */
 int getMACAddress(pcap_t *handle, PLANINFO LanInfo);
-int sendFakeARP(pcap_t* handle, PLANINFO LanInfo);
+/* sendFakeARP.c */
+int setArpHeader(PHEADER header);
+int attackvictim(pcap_t* handle, PHEADER header, PLANINFO LanInfo);
+int attackRouter(pcap_t* handle, PHEADER header, PLANINFO LanInfo);
