@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="checkTCP.c" />
     <ClCompile Include="ChoiceDev.c" />
     <ClCompile Include="checkARP.c" />
     <ClCompile Include="getGateWayAddress.c" />

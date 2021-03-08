@@ -16,14 +16,6 @@ typedef struct ethernet_header
 	u_short ether_Type;
 }ethernet_header, *Pethernet_header;
 
-/* 4 bytes IP address */
-typedef struct ip_address {
-	u_char byte1;
-	u_char byte2;
-	u_char byte3;
-	u_char byte4;
-}ip_address;
-
 typedef struct arp_header
 {
 	u_short Hardware_type;
@@ -37,7 +29,6 @@ typedef struct arp_header
 	u_char dst_IP[4];
 }arp_header, *Parp_header;
 
-
 /* IPv4 header */
 typedef struct ip_header {
 	u_char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
@@ -48,8 +39,8 @@ typedef struct ip_header {
 	u_char  ttl;            // Time to live
 	u_char  proto;          // Protocol
 	u_short crc;            // Header checksum
-	ip_address  src_addr;      // Source address
-	ip_address  dst_addr;      // Destination address
+	u_char  src_addr[4];      // Source address
+	u_char  dst_addr[4];      // Destination address
 	u_int   op_pad;         // Option + Padding
 }ip_header, *Pip_header;
 
@@ -69,12 +60,18 @@ typedef struct LANINFO
 	u_char gatewayMAC[MACLEN];
 }LANINFO, * PLANINFO;
 
-typedef struct HEADER
+typedef struct ARPHEADER
 {
 	ethernet_header ethernet;
 	arp_header arp;
+}ARPHEADER, * PARPHEADER;
+
+typedef struct TCPHEADER
+{
+	ethernet_header ethernet;
+	ip_header ip;
 	tcp_header tcp;
-}HEADER, *PHEADER;
+}TCPHEADER, * PTCPHEADER;
 
 
 /* ChoiceDev.c */
@@ -88,6 +85,11 @@ char *iptos(u_long in);
 /* getMACAddress.c */
 int getMACAddress(pcap_t *handle, PLANINFO LanInfo);
 /* sendFakeARP.c */
-int setArpHeader(PHEADER header);
-int attackvictim(pcap_t* handle, PHEADER header, PLANINFO LanInfo);
-int attackRouter(pcap_t* handle, PHEADER header, PLANINFO LanInfo);
+int setArpHeader(PARPHEADER header);
+int attackvictim(pcap_t* handle, PARPHEADER header, PLANINFO LanInfo);
+int attackRouter(pcap_t* handle, PARPHEADER header, PLANINFO LanInfo);
+/* checkARP */
+int checkVictim(Pethernet_header eh, PLANINFO LanInfo);
+int checkGateWay(Pethernet_header eh, PLANINFO LanInfo);
+/* packetRedirect.c */
+int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo);

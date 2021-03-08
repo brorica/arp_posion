@@ -1,6 +1,6 @@
 #include "myHeader.h"
 
-int setArpHeader(PHEADER header)
+int setArpHeader(PARPHEADER header)
 {
 	header->ethernet.ether_Type = ntohs(0x0806);
 	header->arp.Hardware_type = ntohs(0x0001);

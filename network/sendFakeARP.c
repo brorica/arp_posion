@@ -1,7 +1,8 @@
 #include "myHeader.h"
 
-int setArpHeader(PHEADER header)
+int setArpHeader(PARPHEADER header)
 {
+	/* set header */
 	header->ethernet.ether_Type = ntohs(0x0806);
 	header->arp.Hardware_type = ntohs(0x0001);
 	header->arp.Protocol_type = ntohs(0x0800);
@@ -11,7 +12,7 @@ int setArpHeader(PHEADER header)
 	return 0;
 }
 
-int attackvictim(pcap_t* handle, PHEADER header, PLANINFO LanInfo)
+int attackvictim(pcap_t* handle, PARPHEADER header, PLANINFO LanInfo)
 {
 	u_char packet[ARPSIZE + ETHERNETSIZE];
 	/* set header */
@@ -34,7 +35,7 @@ int attackvictim(pcap_t* handle, PHEADER header, PLANINFO LanInfo)
 }
 
 
-int attackRouter(pcap_t* handle, PHEADER header, PLANINFO LanInfo)
+int attackRouter(pcap_t* handle, PARPHEADER header, PLANINFO LanInfo)
 {
 	u_char packet[ARPSIZE + ETHERNETSIZE];
 	/* set header */
