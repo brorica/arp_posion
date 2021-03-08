@@ -31,23 +31,29 @@ typedef struct arp_header
 
 /* IPv4 header */
 typedef struct ip_header {
-	u_char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
-	u_char  tos;            // Type of service 
-	u_short tlen;           // Total length 
+	u_char  version;        // Version (4 bits) + Internet header length (4 bits)
+	u_char  typeOfService;            // Type of service 
+	u_short totalLen;           // Total length 
 	u_short identification; // Identification
-	u_short flags_fo;       // Flags (3 bits) + Fragment offset (13 bits)
+	u_short flags;       // Flags (3 bits) + Fragment offset (13 bits)
 	u_char  ttl;            // Time to live
-	u_char  proto;          // Protocol
-	u_short crc;            // Header checksum
-	u_char  src_addr[4];      // Source address
-	u_char  dst_addr[4];      // Destination address
-	u_int   op_pad;         // Option + Padding
+	u_char  protocol;       // Protocol
+	u_short checksum;            // Header checksum
+	u_char  src_addr[4];    // Source address
+	u_char  dst_addr[4];    // Destination address
 }ip_header, *Pip_header;
 
 typedef struct tcp_header
 {
 	u_short src_port; // Source port
 	u_short dst_port; // Destination port
+	u_int sequenceNumber;
+	u_int acknowledgementNumber;
+	u_char headerLength;
+	u_char flags;
+	u_short windowSize;
+	u_short checksum;
+	u_short urgentPointer;
 }tcp_header, *Ptcp_header;
 
 typedef struct LANINFO
@@ -93,3 +99,8 @@ int checkVictim(Pethernet_header eh, PLANINFO LanInfo);
 int checkGateWay(Pethernet_header eh, PLANINFO LanInfo);
 /* packetRedirect.c */
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo);
+/* 320Redirect.c */
+int packet_handler_redirect(pcap_t* handle, u_char* packet, struct pcap_pkthdr* header);
+/* CalcChecksum.c */
+int tcpChecksum(Pip_header ipHeader, Ptcp_header tcpHeader, struct pcap_pkthdr* header, const u_char* packet, u_int redirectSiteLen);
+int ipChecksum(Pip_header ipHeader, u_int redirectSiteLen);

@@ -36,13 +36,16 @@
     <ClCompile Include="getMACAddress.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="SetArpHeader.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="checkARP.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="checkTCP.c">
+    <ClCompile Include="packetRedirect.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CalcChecksum.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="302Redirect.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
