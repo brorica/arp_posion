@@ -12,7 +12,7 @@ int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* 
 			/* send to router */
 			memcpy(header->ethernet.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
 			memcpy(header->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
-			memcpy(packet, header, pktHeader->len);
+			memcpy((char *)packet, header, pktHeader->len);
 			if (pcap_sendpacket(handle, packet, pktHeader->len /* size */) != 0)
 			{
 				fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
@@ -24,7 +24,7 @@ int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* 
 			/* send to victim */
 			memcpy(header->ethernet.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
 			memcpy(header->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
-			memcpy(packet, header, pktHeader->len);
+			memcpy((char *)packet, header, pktHeader->len);
 			if (pcap_sendpacket(handle, packet, pktHeader->len /* size */) != 0)
 			{
 				fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));

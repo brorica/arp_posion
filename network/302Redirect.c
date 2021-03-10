@@ -1,34 +1,24 @@
 #include "myHeader.h"
 
-int packet_handler_redirect(pcap_t* handle, u_char* packet, struct pcap_pkthdr* header)
+int packet_handlerRedirect(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len)
 {
-	PTCPHEADER tcpHeader;
-	tcpHeader = (PTCPHEADER)(packet);
-	/* check packet is null */
-	if (packet == NULL)
-		return 0;
-	/* only get http */
-	if (ntohs(tcpHeader->tcp.dst_port) != 0x0050)				// http 통신이 아니면 버림
-		return 0;
-
-	char* redirectSite = "HTTP / 1.1 302 Found\r\nLocation: http://en.wikipedia.org/wiki/HTTP_302\r\n";
-	u_int redirectSiteLen = strlen(redirectSite);
-	tcpHeader->tcp.checksum = tcpChecksum(&tcpHeader->ip, &tcpHeader->tcp, header, packet, redirectSiteLen);
-	swapEthernetSrcDstAddress(&tcpHeader->ethernet);
-	tcpHeader->ip.checksum = ipChecksum(&tcpHeader->ip, redirectSiteLen);
-	/* send packet */
-	u_char redirectPacket[4096];
-	memcpy(redirectPacket, tcpHeader, sizeof(TCPHEADER));
-	memcpy(redirectPacket + 54 , redirectSite, redirectSiteLen);
-	pcap_sendpacket(handle, redirectPacket, 4096);
-	return 0;
-}
-
-int swapEthernetSrcDstAddress(Pethernet_header eh)
-{
-	u_char temp[MACLEN];
-	/* chagne MAC Addr */
-	memcpy(temp, eh->dst_MAC, sizeof(u_char) * MACLEN);
-	memcpy(eh->dst_MAC, eh->src_MAC, sizeof(u_char) * MACLEN);
-	memcpy(eh->src_MAC, temp, sizeof(u_char) * MACLEN);
+	Pip_header ih;
+	Ptcp_header tcp;
+	memcpy(sendPacket, packet, 54);
+	ih = (Pip_header)(sendPacket + 14);
+	tcp = (Ptcp_header)((char *)ih + 20);
+	memcpy((char*)tcp + 20, msg, msg_len);
+	/* set header */
+	ih->identification += 1;
+	tcp->seq = ntohl(tcp->seq) + ntohs(ih->totalLen) - 20 - 20;
+	tcp->seq = htonl(tcp->seq);
+	ih->totalLen = (20 + 20 + msg_len) << 8; // htons(20 + 20 + msg_len)
+	tcp->windowSize = 0;
+	tcp->flags = 0x11;
+	tcp->windowSize = 0;
+	/* set checksum */
+	ih->checksum = ipChecksum(ih);
+	tcp->checksum = tcpChecksum(ih, tcp, 20 + msg_len);
+	printf("redirection end\n");
+	return 1;
 }

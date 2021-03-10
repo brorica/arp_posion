@@ -47,9 +47,9 @@ typedef struct tcp_header
 {
 	u_short src_port; // Source port
 	u_short dst_port; // Destination port
-	u_int sequenceNumber;
-	u_int acknowledgementNumber;
-	u_char headerLength;
+	u_int seq;
+	u_int ack;
+	u_char th_x2 :4, th_off :4;
 	u_char flags;
 	u_short windowSize;
 	u_short checksum;
@@ -79,6 +79,16 @@ typedef struct TCPHEADER
 	tcp_header tcp;
 }TCPHEADER, * PTCPHEADER;
 
+#define LINK_REDIRECT "https://en.wikipedia.org/wiki/HTTP_302" /* REDIRECT LINK */
+#define LINK_BLOCK    "gilgil.net"                             /* BLOCK LINK */
+#define MSG_FORWARD   "blocked"
+#define MSG_BACKWARD  "HTTP/1.1 302 Found\r\n" \
+                      "Location: "LINK_REDIRECT"\r\n"
+
+#define LINK_REDIRECT_LEN sizeof(LINK_REDIRECT) - 1
+#define LINK_BLOCK_LEN    sizeof(LINK_BLOCK)    - 1
+#define MSG_FORWARD_LEN   sizeof(MSG_FORWARD)   - 1
+#define MSG_BACKWARD_LEN  sizeof(MSG_BACKWARD)  - 1
 
 /* ChoiceDev.c */
 pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
@@ -99,8 +109,10 @@ int checkVictim(Pethernet_header eh, PLANINFO LanInfo);
 int checkGateWay(Pethernet_header eh, PLANINFO LanInfo);
 /* packetRedirect.c */
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo);
-/* 320Redirect.c */
-int packet_handler_redirect(pcap_t* handle, u_char* packet, struct pcap_pkthdr* header);
+/* 302 Redirect.c */
+int packet_handlerRedirect(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len);
+/* backward.c */
+int packet_handlerBackward(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len);
 /* CalcChecksum.c */
-int tcpChecksum(Pip_header ipHeader, Ptcp_header tcpHeader, struct pcap_pkthdr* header, const u_char* packet, u_int redirectSiteLen);
-int ipChecksum(Pip_header ipHeader, u_int redirectSiteLen);
+u_short ipChecksum(Pip_header ipHeader);
+u_short tcpChecksum(Pip_header ipHeader, Ptcp_header tcpHeader, u_short Datalen);

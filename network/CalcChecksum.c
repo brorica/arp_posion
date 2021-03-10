@@ -8,72 +8,49 @@ typedef struct PSEUDO_HEADER {
 	u_short tcpLength;
 }PSEUDO_HEADER, *PPSEUDO_HEADER;
 
-int tcpChecksum(Pip_header ipHeader, Ptcp_header tcpHeader, struct pcap_pkthdr* header, const u_char* packet, u_int redirectSiteLen)
+u_short tcpChecksum(Pip_header ipHeader, Ptcp_header tcpHeader, u_short len)
 {
-	u_int sum = 0, tcpHeaderSzie;
+	u_int sum = 0;
 	PSEUDO_HEADER pseudo_header;
 	u_short* pseudoHeaderPointer = (u_short *)(&pseudo_header);
 	u_short* tcpHeaderPointer = (u_short*)(tcpHeader);
-	u_short* tcpBodyPointer;
-	/* port change */
-	u_short portTemp;
-	portTemp = tcpHeader->src_port;
-	tcpHeader->src_port = tcpHeader->dst_port;
-	tcpHeader->dst_port = portTemp;
-	/* seq, ack change */
-	u_int shakeTemp = tcpHeader->acknowledgementNumber;
-	tcpHeader->acknowledgementNumber = ntohl(tcpHeader->sequenceNumber) + (header->len - 54);
-	tcpHeader->acknowledgementNumber = htonl(tcpHeader->sequenceNumber);
-	tcpHeader->sequenceNumber = shakeTemp;
-	/* set Flag and Calc Checksum */
-	tcpHeaderSzie = sizeof(TCPHEADER);
-	tcpHeader->checksum = 0;
-	tcpHeader->sequenceNumber = htonl(tcpHeader->sequenceNumber) + (header->len - tcpHeaderSzie);
-	tcpHeader->sequenceNumber = ntohl(tcpHeader->sequenceNumber);
-	tcpHeader->flags = 0x11;
+	/* set pseudo Header */
 	memcpy(&pseudo_header.ip_src_addr, ipHeader->src_addr, sizeof(u_char) * 4);
 	memcpy(&pseudo_header.ip_dst_addr, ipHeader->dst_addr, sizeof(u_char) * 4);
 	pseudo_header.reserved = 0;
 	pseudo_header.protocol = ipHeader->protocol;
-	pseudo_header.tcpLength = (u_short)sizeof(tcp_header) + (u_short)redirectSiteLen;
-
+	pseudo_header.tcpLength = htons(ntohs(ipHeader->totalLen) - 20);
+	/* sum pseudo Header */
 	for (int i = 0; i < 6; i++)
 	{
-		sum += ntohs(*pseudoHeaderPointer);
+		sum += *pseudoHeaderPointer;
 		pseudoHeaderPointer++;
 	}
-	/* check data field */
-	if (header->len > tcpHeaderSzie)
+	u_int count = len >> 1;
+	while (count--)
 	{
-		int dataLen = header->len - tcpHeaderSzie;
-		tcpBodyPointer = (u_short*)(packet + tcpHeaderSzie);
-		for (int i = 0; i < dataLen; i+=2)
-		{
-			sum += ntohs(*tcpBodyPointer);
-			tcpBodyPointer++;
-		}
+		sum += *tcpHeaderPointer;
+		tcpHeaderPointer++;
 	}
-	for (int i = 0; i < 10; i++)
-	{
-		sum += ntohs(*tcpHeaderPointer);
-		pseudoHeaderPointer++;
-	}
+	if (len % 2)
+		sum += *tcpHeaderPointer;
 	sum = (sum >> 16) + (sum & 0xffff);
-	return ~sum;
+	sum += sum >> 16;
+	return ~sum & 0xffff;
 }
 
-int ipChecksum(Pip_header ipHeader, u_int redirectSiteLen)
+u_short ipChecksum(Pip_header ipHeader)
 {
 	u_int sum = 0;
 	u_short* ipHeaderPointer = (u_short*)ipHeader;
-	/* IPHEADER + TCPHEADER = 40 */
-	ipHeader->totalLen = 40 + redirectSiteLen;
+	ipHeader->checksum = 0;
 	/* common ip header length 20Byes */
 	for (int i = 0; i < 10; i++)
 	{
-		sum += ntohs(*ipHeaderPointer);
+		sum += *ipHeaderPointer;
 		ipHeaderPointer++;
 	}
 	sum = (sum >> 16) + (sum & 0xffff);
-	return ~sum;
+	sum += sum >> 16;
+	return ~sum & 0xffff;
 }

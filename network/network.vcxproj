@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="302Redirect.c" />
+    <ClCompile Include="backward.c" />
     <ClCompile Include="CalcChecksum.c" />
     <ClCompile Include="packetRedirect.c" />
     <ClCompile Include="ChoiceDev.c" />
