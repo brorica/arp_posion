@@ -25,7 +25,7 @@ int packet302Redirect(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo
 	swapSeqAck(&tcp->seq, &tcp->ack);
 	/* set header */
 	ip->ttl = 128;
-	tcp->ack = htonl(ntohl(tcp->ack) + ntohs(ip->totalLen) - IP_HEADER_SIZE - TCP_HEADER_SIZE); /* acknowlegment number */
+	tcp->ack = htonl(ntohl(tcp->ack) + ntohs(ip->totalLen) - IP_HEADER_SIZE - TCP_HEADER_SIZE);
 	ip->totalLen = htons(IP_HEADER_SIZE + TCP_HEADER_SIZE + msgBackwardLen);
 	tcp->flags = TH_FIN | TH_ACK;
 	tcp->window = 0;

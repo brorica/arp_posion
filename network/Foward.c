@@ -13,7 +13,7 @@ int packetForward(u_char* sendPacket, const u_char* packet)
 	memcpy((char*)tcp + TCP_HEADER_SIZE, msgForward, msgForwardLen);
 	/* set header */
 	ip->identifification += 1;
-	tcp->seq = htonl(ntohl(tcp->seq) + ntohs(ip->totalLen) - IP_HEADER_SIZE - TCP_HEADER_SIZE); /* sequence number */
+	tcp->seq = htonl(ntohl(tcp->seq) + ntohs(ip->totalLen) - IP_HEADER_SIZE - TCP_HEADER_SIZE);
 	ip->totalLen = htons(IP_HEADER_SIZE + TCP_HEADER_SIZE + msgForwardLen);
 	tcp->flags = TH_FIN | TH_ACK;
 	tcp->window = 0;

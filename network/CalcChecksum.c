@@ -41,7 +41,7 @@ u_short checksum_ip(PIP_HEADER ip)
 	u_int sum = 0;
 	u_short* ipHeaderPointer = (u_short*)ip;
 	ip->checksum = 0;
-	/* common ip header length 20Byes */
+	/* sum ip Header */
 	for (int i = 0; i < 10; i++)
 	{
 		sum += *ipHeaderPointer;
