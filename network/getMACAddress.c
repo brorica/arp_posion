@@ -1,11 +1,11 @@
 #include "myHeader.h"
 
-int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARPHEADER setHeader);
-int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARPHEADER setHeader);
+int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader);
+int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader);
 
 int getMACAddress(pcap_t * handle, PLANINFO LanInfo)
 {
-    ARPHEADER setHeader;
+    ARP_PACKET setHeader;
     /* set Etherenet Header */
     memset(&(setHeader.ethernet.dst_MAC), 0xFF, sizeof(u_char) * MACLEN);
     memcpy(&(setHeader.ethernet.src_MAC), LanInfo->myMAC, sizeof(u_char) * MACLEN);
@@ -22,10 +22,10 @@ int getMACAddress(pcap_t * handle, PLANINFO LanInfo)
 	return 0;
 }
 
-int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARPHEADER setHeader)
+int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
 {
     int res, check;
-    PARPHEADER replyHeader;
+    PARP_PACKET replyHeader;
     u_char arpPacket[ARPSIZE + ETHERNETSIZE];
     struct pcap_pkthdr* header;
     const u_char * packet;
@@ -46,7 +46,7 @@ int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARPHEADER setHeader)
     /* get reply packet */
     while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)
     {
-        replyHeader = (PARPHEADER)packet;
+        replyHeader = (PARP_PACKET)packet;
         if (ntohs(replyHeader->ethernet.ether_Type) == 0x0806)
         {
             if (ntohs(replyHeader->arp.Opcode) == 0x0002)
@@ -63,10 +63,10 @@ int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARPHEADER setHeader)
     return 0;
 }
 
-int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARPHEADER setHeader)
+int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
 {
     int res, check;
-    PARPHEADER replyHeader;
+    PARP_PACKET replyHeader;
     u_char arpPacket[ARPSIZE + ETHERNETSIZE];
     struct pcap_pkthdr* header;
     const u_char* packet;
@@ -87,7 +87,7 @@ int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARPHEADER setHeader)
     /* get reply packet */
     while ((res = pcap_next_ex(handle, &header, &packet)) > 0)
     {
-        replyHeader = (PARPHEADER)packet;
+        replyHeader = (PARP_PACKET)packet;
         if (ntohs(replyHeader->ethernet.ether_Type) == 0x0806)
         {
             if (ntohs(replyHeader->arp.Opcode) == 0x0002)

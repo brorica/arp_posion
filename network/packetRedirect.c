@@ -21,8 +21,8 @@ int checkHttp(const u_char* packet) {
 
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo)
 {
-	PTCPHEADER header;
-	header = (PTCPHEADER)packet;
+	PTCP_PACKET header;
+	header = (PTCP_PACKET)packet;
 	u_short ether_type = ntohs(header->ethernet.ether_Type);
 	/* ipv4 : 0x0800 */
 	if (ether_type == 0x0800)
@@ -36,7 +36,7 @@ int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* 
 				const char msgBackward[128] = "HTTP/1.1 302 Found\r\nLocation: http://en.wikipedia.org/wiki/HTTP_302\r\n";
 				u_short msgForwardLen = strlen(msgForward);
 				u_short msgBackwardLen = strlen(msgBackward);
-				packet_handlerBackward(sendPacket, packet, msgBackward, msgBackwardLen, LanInfo);
+				packet_handlerForward(sendPacket, packet, msgBackward, msgBackwardLen, LanInfo);
 				pcap_sendpacket(handle, sendPacket, 14 + 20 + 20 + msgBackwardLen);
 				packet_handlerRedirect(sendPacket, packet, msgForward, msgForwardLen);
 				pcap_sendpacket(handle, sendPacket, 14 + 20 + 20 + msgForwardLen);
