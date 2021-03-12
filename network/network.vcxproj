@@ -149,8 +149,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Foward.c" />
     <ClCompile Include="302Redirect.c" />
-    <ClCompile Include="forward.c" />
     <ClCompile Include="CalcChecksum.c" />
     <ClCompile Include="packetRedirect.c" />
     <ClCompile Include="ChoiceDev.c" />

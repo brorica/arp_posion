@@ -1,10 +1,8 @@
 #include <pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <Windows.h>
 #include <winsock2.h>
-#include "win32/libnet.h"
 
 #define MACLEN 6
 #define ARP_HEADER_SIZE 28
@@ -129,9 +127,9 @@ int checkGateWay(PETHERNET_HEADER eh, PLANINFO LanInfo);
 /* packetRedirect.c */
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo);
 /* 302 Redirect.c */
-int packet_handlerRedirect(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len);
+int packet302Redirect(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo);
 /* forward.c */
-int packet_handlerForward(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len, PLANINFO LanInfo);
+int packetForward(u_char* sendPacket, const u_char* packet);
 /* CalcChecksum.c */
 u_short checksum_ip(PIP_HEADER ip);
-u_short checksum_tcp(PIP_HEADER ip, PTCP_HEADER tcp, const u_int len);
+u_short checksum_tcp(PIP_HEADER ip, PTCP_HEADER tcp, u_short totalTcpLen);

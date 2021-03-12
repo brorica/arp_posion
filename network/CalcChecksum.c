@@ -8,24 +8,24 @@ typedef struct PSEUDO_HEADER {
 	u_short tcpLength;
 }PSEUDO_HEADER, *PPSEUDO_HEADER;
 
-u_short checksum_tcp(PIP_HEADER ip, PTCP_HEADER tcp, const u_int len)
+u_short checksum_tcp(PIP_HEADER ip, PTCP_HEADER tcp, u_short totalTcpLen)
 {
 	PSEUDO_HEADER ph;
 	u_short* pointer;
-	u_int count;
+	u_int totalTcpLenHalf;
 	u_int sum = 0;
 	tcp->checksum = 0;
 	memcpy(ph.ip_src_addr, ip->sourceIP, sizeof(u_int));
 	memcpy(ph.ip_dst_addr, ip->destinationIP, sizeof(u_int));
 	ph.reserved = 0;
 	ph.protocol = IP_PROTOCOL_TCP;
-	ph.tcpLength = htons(ntohs(ip->totalLen) - LIBNET_IPV4_H);
+	ph.tcpLength = htons(ntohs(ip->totalLen) - IP_HEADER_SIZE);
 	/* sum tcp Header */
-	count = len >> 1;
+	totalTcpLenHalf = totalTcpLen >> 1;
 	pointer = (u_short *)tcp;
-	while (count--)
+	while (totalTcpLenHalf--)
 		sum += *pointer++;
-	if (len % 2)
+	if (totalTcpLen % 2)
 		sum += *pointer;
 	/* sum pseudo Header */
 	pointer = (u_short *)&ph;

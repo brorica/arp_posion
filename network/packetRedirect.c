@@ -7,21 +7,24 @@ int checkHttp(const u_char* packet) {
 	/* ethernet header */
 	eth = (PETHERNET_HEADER)packet;
 	/* ip header */
-	if (ntohs(eth->etherType) != ETHERTYPE_IP) return 0;
+	if (ntohs(eth->etherType) != IPV4) 
+		return 0;
 	ip = (PIP_HEADER)(packet + ETHERNET_HEADER_SIZE);
 	/* tcp header */
-	if (ntohs(ip->totalLen) <= IP_HEADER_SIZE + TCP_HEADER_SIZE || ip->protocol != IP_PROTOCOL_TCP) return 0;
+	if (ntohs(ip->totalLen) <= IP_HEADER_SIZE + TCP_HEADER_SIZE || ip->protocol != IP_PROTOCOL_TCP) 
+		return 0;
 	tcp = (PTCP_HEADER)(packet + ETHERNET_HEADER_SIZE + IP_HEADER_SIZE);
 	/* tcp data */
 	char* data = (char*)(packet + TCP_PACKET_SIZE);
-	if (memcmp(data, "GET", 3)) return 0;
+	if (memcmp(data, "GET", 3)) 
+		return 0;
 	return 1;
 }
-
 
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo)
 {
 	PTCP_PACKET header;
+	int packetSize;
 	header = (PTCP_PACKET)packet;
 	u_short ether_type = ntohs(header->ethernet.etherType);
 	if (ether_type == IPV4)
@@ -31,14 +34,10 @@ int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* 
 			if (checkHttp(packet))
 			{
 				u_char sendPacket[1024] = { 0 };
-				const char msgForward[8] = "blocked";
-				const char msgBackward[128] = "HTTP/1.1 302 Found\r\nLocation: http://en.wikipedia.org/wiki/HTTP_302\r\n";
-				u_short msgForwardLen = strlen(msgForward);
-				u_short msgBackwardLen = strlen(msgBackward);
-				packet_handlerForward(sendPacket, packet, msgBackward, msgBackwardLen, LanInfo);
-				pcap_sendpacket(handle, sendPacket, 14 + 20 + 20 + msgBackwardLen);
-				packet_handlerRedirect(sendPacket, packet, msgForward, msgForwardLen);
-				pcap_sendpacket(handle, sendPacket, 14 + 20 + 20 + msgForwardLen);
+				packetSize = packet302Redirect(sendPacket, packet, LanInfo);
+				pcap_sendpacket(handle, sendPacket, packetSize);
+				packetSize = packetForward(sendPacket, packet );
+				pcap_sendpacket(handle, sendPacket, packetSize);
 			}
 			else
 			{

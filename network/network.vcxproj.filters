@@ -39,10 +39,10 @@
     <ClCompile Include="CalcChecksum.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="302Redirect.c">
+    <ClCompile Include="Foward.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="forward.c">
+    <ClCompile Include="302Redirect.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
