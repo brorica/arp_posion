@@ -2,23 +2,22 @@
 
 int packet_handlerRedirect(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len)
 {
-	Pip_header ih;
-	Ptcp_header tcp;
-	memcpy(sendPacket, packet, 54);
-	ih = (Pip_header)(sendPacket + 14);
-	tcp = (Ptcp_header)((char *)ih + 20);
-	memcpy((char*)tcp + 20, msg, msg_len);
+	struct libnet_ipv4_hdr* ip;
+	struct libnet_tcp_hdr* tcp;
+	/* copy */
+	memcpy(sendPacket, packet, LIBNET_ETH_H + LIBNET_IPV4_H + LIBNET_TCP_H);
+	ip = (struct libnet_ipv4_hdr*)(sendPacket + LIBNET_ETH_H);
+	tcp = (struct libnet_tcp_hdr*)((char*)ip + LIBNET_IPV4_H);
+	memcpy((char*)tcp + LIBNET_TCP_H, msg, msg_len);
 	/* set header */
-	ih->identification += 1;
-	tcp->seq = ntohl(tcp->seq) + ntohs(ih->totalLen) - 20 - 20;
-	tcp->seq = htonl(tcp->seq);
-	ih->totalLen = (20 + 20 + msg_len) << 8; // htons(20 + 20 + msg_len)
-	tcp->windowSize = 0;
-	tcp->flags = 0x11;
-	tcp->windowSize = 0;
+	ip->ip_id += 1;
+	tcp->th_seq = htonl(ntohl(tcp->th_seq) + ntohs(ip->ip_len) - LIBNET_IPV4_H - LIBNET_TCP_H); /* sequence number */
+	ip->ip_len = htons(LIBNET_IPV4_H + LIBNET_TCP_H + msg_len);
+	tcp->th_flags = TH_FIN | TH_ACK;
+	tcp->th_win = 0;
 	/* set checksum */
-	ih->checksum = ipChecksum(ih);
-	tcp->checksum = tcpChecksum(ih, tcp, 20 + msg_len);
+	checksum_ip(ip);
+	checksum_tcp(ip, tcp, LIBNET_TCP_H + msg_len);
 	printf("redirection end\n");
 	return 1;
 }

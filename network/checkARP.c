@@ -35,6 +35,22 @@ int checkARP(pcap_t* handle, const u_char* packet, PLANINFO LanInfo)
 	return 0;
 }
 
+int checkVictim2(struct libnet_ethernet_hdr* eth, PLANINFO LanInfo)
+{
+	int srcCheck, dstCheck;
+	srcCheck = memcmp(eth->ether_shost, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
+	dstCheck = memcmp(eth->ether_dhost, LanInfo->myMAC, sizeof(u_char) * MACLEN);
+	return (!srcCheck) && (!dstCheck);
+}
+
+int checkGateWay2(struct libnet_ethernet_hdr* eth, PLANINFO LanInfo)
+{
+	int srcCheck, dstCheck;
+	srcCheck = memcmp(eth->ether_shost, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
+	dstCheck = memcmp(eth->ether_dhost, LanInfo->myMAC, sizeof(u_char) * MACLEN);
+	return (!srcCheck) && (!dstCheck);
+}
+
 int checkVictim(Pethernet_header eh, PLANINFO LanInfo)
 {
 	int srcCheck, dstCheck;

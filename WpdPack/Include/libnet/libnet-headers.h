@@ -106,50 +106,6 @@
 #define LIBNET_UDP_H            0x08    /**< UDP header:           8 bytes */
 #define LIBNET_VRRP_H           0x08    /**< VRRP header:          8 bytes */
 
-#define MACLEN 6
-typedef struct ethernet_header
-{
-    u_char dst_MAC[MACLEN];
-    u_char src_MAC[MACLEN];
-    u_short ether_Type;
-}ethernet_header, * Pethernet_header;
-
-typedef struct ip_header {
-    u_char  version;        // Version (4 bits) + Internet header length (4 bits)
-    u_char  typeOfService;            // Type of service 
-    u_short totalLen;           // Total length 
-    u_short identification; // Identification
-    u_short flags;       // Flags (3 bits) + Fragment offset (13 bits)
-    u_char  ttl;            // Time to live
-    u_char  protocol;       // Protocol
-    u_short checksum;            // Header checksum
-    u_char  src_addr[4];    // Source address
-    u_char  dst_addr[4];    // Destination address
-}ip_header, * Pip_header;
-
-typedef struct tcp_header
-{
-    u_short src_port; // Source port
-    u_short dst_port; // Destination port
-    u_int seq;
-    u_int ack;
-    u_char th_x2 : 4, th_off : 4;
-    u_char flags;
-    u_short windowSize;
-    u_short checksum;
-    u_short urgentPointer;
-}tcp_header, * Ptcp_header;
-
-typedef struct TCPHEADER
-{
-    ethernet_header ethernet;
-    ip_header ip;
-    tcp_header tcp;
-}TCPHEADER, * PTCPHEADER;
-
-
-
-
 /**
  * IEEE 802.1Q (Virtual Local Area Network) VLAN header, static header 
  * size: 18 bytes

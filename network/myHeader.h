@@ -4,10 +4,12 @@
 #include <string.h>
 #include <Windows.h>
 #include <winsock2.h>
+#include "win32/libnet.h"
 
 #define MACLEN 6
 #define ARPSIZE 28
 #define ETHERNETSIZE 14
+#define IPPRO_TCP 6
 
 typedef struct ethernet_header
 {
@@ -29,33 +31,6 @@ typedef struct arp_header
 	u_char dst_IP[4];
 }arp_header, *Parp_header;
 
-/* IPv4 header */
-typedef struct ip_header {
-	u_char  version;        // Version (4 bits) + Internet header length (4 bits)
-	u_char  typeOfService;            // Type of service 
-	u_short totalLen;           // Total length 
-	u_short identification; // Identification
-	u_short flags;       // Flags (3 bits) + Fragment offset (13 bits)
-	u_char  ttl;            // Time to live
-	u_char  protocol;       // Protocol
-	u_short checksum;            // Header checksum
-	u_char  src_addr[4];    // Source address
-	u_char  dst_addr[4];    // Destination address
-}ip_header, *Pip_header;
-
-typedef struct tcp_header
-{
-	u_short src_port; // Source port
-	u_short dst_port; // Destination port
-	u_int seq;
-	u_int ack;
-	u_char th_x2 :4, th_off :4;
-	u_char flags;
-	u_short windowSize;
-	u_short checksum;
-	u_short urgentPointer;
-}tcp_header, *Ptcp_header;
-
 typedef struct LANINFO
 {
 	IN_ADDR  myIP;
@@ -72,23 +47,39 @@ typedef struct ARPHEADER
 	arp_header arp;
 }ARPHEADER, * PARPHEADER;
 
+
+typedef struct ip_header {
+    u_char  version;        // Version (4 bits) + Internet header length (4 bits)
+    u_char  typeOfService;            // Type of service 
+    u_short totalLen;           // Total length 
+    u_short identification; // Identification
+    u_short flags;       // Flags (3 bits) + Fragment offset (13 bits)
+    u_char  ttl;            // Time to live
+    u_char  protocol;       // Protocol
+    u_short checksum;            // Header checksum
+    u_char  src_addr[4];    // Source address
+    u_char  dst_addr[4];    // Destination address
+}ip_header, * Pip_header;
+
+typedef struct tcp_header
+{
+    u_short src_port; // Source port
+    u_short dst_port; // Destination port
+    u_int seq;
+    u_int ack;
+    u_char th_x2 : 4, th_off : 4;
+    u_char flags;
+    u_short windowSize;
+    u_short checksum;
+    u_short urgentPointer;
+}tcp_header, * Ptcp_header;
+
 typedef struct TCPHEADER
 {
-	ethernet_header ethernet;
-	ip_header ip;
-	tcp_header tcp;
+    ethernet_header ethernet;
+    ip_header ip;
+    tcp_header tcp;
 }TCPHEADER, * PTCPHEADER;
-
-#define LINK_REDIRECT "https://en.wikipedia.org/wiki/HTTP_302" /* REDIRECT LINK */
-#define LINK_BLOCK    "gilgil.net"                             /* BLOCK LINK */
-#define MSG_FORWARD   "blocked"
-#define MSG_BACKWARD  "HTTP/1.1 302 Found\r\n" \
-                      "Location: "LINK_REDIRECT"\r\n"
-
-#define LINK_REDIRECT_LEN sizeof(LINK_REDIRECT) - 1
-#define LINK_BLOCK_LEN    sizeof(LINK_BLOCK)    - 1
-#define MSG_FORWARD_LEN   sizeof(MSG_FORWARD)   - 1
-#define MSG_BACKWARD_LEN  sizeof(MSG_BACKWARD)  - 1
 
 /* ChoiceDev.c */
 pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
@@ -107,12 +98,14 @@ int attackRouter(pcap_t* handle, PARPHEADER header, PLANINFO LanInfo);
 /* checkARP */
 int checkVictim(Pethernet_header eh, PLANINFO LanInfo);
 int checkGateWay(Pethernet_header eh, PLANINFO LanInfo);
+int checkVictim2(struct libnet_ethernet_hdr* eth, PLANINFO LanInfo);
+int checkGateWay2(struct libnet_ethernet_hdr* eth, PLANINFO LanInfo);
 /* packetRedirect.c */
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo);
 /* 302 Redirect.c */
 int packet_handlerRedirect(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len);
 /* backward.c */
-int packet_handlerBackward(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len);
+int packet_handlerBackward(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len, PLANINFO LanInfo);
 /* CalcChecksum.c */
-u_short ipChecksum(Pip_header ipHeader);
-u_short tcpChecksum(Pip_header ipHeader, Ptcp_header tcpHeader, u_short Datalen);
+u_short checksum_ip(struct libnet_ipv4_hdr* ip);
+u_short checksum_tcp(const struct libnet_ipv4_hdr* ip, struct libnet_tcp_hdr* tcp, const u_int len);

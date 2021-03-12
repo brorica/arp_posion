@@ -90,7 +90,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;HAVE_REMOTE;WPCAP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996;4214;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>C:\Users\pc\Desktop\network\WpdPack\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -156,11 +156,9 @@
     <ClCompile Include="ChoiceDev.c" />
     <ClCompile Include="checkARP.c" />
     <ClCompile Include="getGateWayAddress.c" />
-    <ClCompile Include="ipHeader.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="getMACAddress.c" />
     <ClCompile Include="sendFakeARP.c" />
-    <ClCompile Include="tcpHeader.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myHeader.h" />

@@ -1,55 +1,52 @@
 #include "myHeader.h"
 
-int swapEthernetSrcDstAddress(Pethernet_header eh);
-int swapIpAddress(Pip_header ip);
-int swapPort(u_short* src, u_short* dst);
-int swapSeqAck(u_int* seq, u_int* ack);
+inline int swapMAC(struct libnet_ethernet_hdr* eth, PLANINFO LanInfo);
+inline int swapIP(u_long* src, u_long* dst);
+inline int swapPort(u_short* src, u_short* dst);
+inline int swapSeqAck(u_int* seq, u_int* ack);
 
-int packet_handlerBackward(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len)
+int packet_handlerBackward(u_char* sendPacket, u_char* packet, const u_char* msg, const u_short msg_len, PLANINFO LanInfo)
 {
-	Pethernet_header eh;
-	Pip_header ip;
-	Ptcp_header tcp;
-	memcpy(sendPacket, packet, 54);
-	eh = (Pethernet_header)sendPacket;
-	ip = (Pip_header)(sendPacket + 14);
-	tcp = (Ptcp_header)((char *)ip + 20);
-	memcpy((char *)tcp + 20, msg, msg_len);
+	struct libnet_ethernet_hdr* eth;
+	struct libnet_ipv4_hdr* ip;
+	struct libnet_tcp_hdr* tcp;
+	/* copy */
+	memcpy(sendPacket, packet, LIBNET_ETH_H + LIBNET_IPV4_H + LIBNET_TCP_H);
+	eth = (struct libnet_ethernet_hdr*)sendPacket;
+	ip = (struct libnet_ipv4_hdr*)(sendPacket + LIBNET_ETH_H);
+	tcp = (struct libnet_tcp_hdr*)((char*)ip + LIBNET_IPV4_H);
+	memcpy((char*)tcp + LIBNET_TCP_H, msg, msg_len);
 	/* swap */
-	swapEthernetSrcDstAddress(eh);
-	swapIpAddress(ip);
-	swapPort(&tcp->src_port, &tcp->dst_port);
-	swapSeqAck(&tcp->seq, &tcp->ack);
-	/* set Header*/
-	ip->ttl = 128; /* time to live */
-	tcp->ack = htonl(ntohl(tcp->ack) + ntohs(ip->totalLen) - 20 - 20);
-	ip->totalLen = htons(20 + 20 + msg_len);
-	tcp->flags = 0x11;	// FIN | ACK;
-	tcp->windowSize = 0;
-	/* set checksum */
-	ip->checksum = ipChecksum(ip);
-	tcp->checksum = tcpChecksum(ip, tcp, 20 + msg_len);
-	/* send packet */
+	swapMAC(eth, LanInfo);
+	swapIP(&ip->ip_src.s_addr, &ip->ip_dst.s_addr);
+	swapPort(&tcp->th_sport, &tcp->th_dport);
+	swapSeqAck(&tcp->th_seq, &tcp->th_ack);
+	/* set */
+	ip->ip_ttl = 128;
+	tcp->th_ack = htonl(ntohl(tcp->th_ack) + ntohs(ip->ip_len) - LIBNET_IPV4_H - LIBNET_TCP_H); /* acknowlegment number */
+	ip->ip_len = htons(LIBNET_IPV4_H + LIBNET_TCP_H + msg_len);
+	tcp->th_flags = TH_FIN | TH_ACK;
+	tcp->th_win = 0;
+	/* checksum */
+	ip->ip_sum = checksum_ip(ip);
+	tcp->th_sum = checksum_tcp(ip, tcp, LIBNET_TCP_H + msg_len);
 	printf("backward end\n");
 	return 1;
 }
 
-int swapEthernetSrcDstAddress(Pethernet_header eh)
+int swapMAC(struct libnet_ethernet_hdr* eth, PLANINFO LanInfo)
 {
-	u_char temp[MACLEN];
 	/* chagne MAC Addr */
-	memcpy(temp, eh->dst_MAC, sizeof(u_char) * MACLEN);
-	memcpy(eh->dst_MAC, eh->src_MAC, sizeof(u_char) * MACLEN);
-	memcpy(eh->src_MAC, temp, sizeof(u_char) * MACLEN);
+	memcpy(eth->ether_shost, LanInfo->myMAC, sizeof(u_char) * MACLEN);
+	memcpy(eth->ether_dhost, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
 	return 0;
 }
 
-int swapIpAddress(Pip_header ip)
+int swapIP(u_long* src, u_long* dst)
 {
-	u_char ipTemp[4];
-	memcpy(ipTemp, ip->src_addr, sizeof(u_char) * 4);
-	memcpy(ip->src_addr, ip->dst_addr, sizeof(u_char) * 4);
-	memcpy(ip->dst_addr, ipTemp, sizeof(u_char) * 4);
+	u_long temp = *src;
+	*src = *dst;
+	*dst = temp;
 	return 0;
 }
 int swapPort(u_short * src, u_short * dst)

@@ -1,49 +1,46 @@
 #include "myHeader.h"
 
 typedef struct PSEUDO_HEADER {
-	u_char ip_src_addr[4];
-	u_char ip_dst_addr[4];
+	u_int ip_src_addr;
+	u_int ip_dst_addr;
 	u_char reserved;
 	u_char protocol;
 	u_short tcpLength;
 }PSEUDO_HEADER, *PPSEUDO_HEADER;
 
-u_short tcpChecksum(Pip_header ipHeader, Ptcp_header tcpHeader, u_short len)
+u_short checksum_tcp(const struct libnet_ipv4_hdr* ip, struct libnet_tcp_hdr* tcp, const u_int len)
 {
+	PSEUDO_HEADER ph;
+	u_short* pointer;
+	u_int count;
 	u_int sum = 0;
-	PSEUDO_HEADER pseudo_header;
-	u_short* pseudoHeaderPointer = (u_short *)(&pseudo_header);
-	u_short* tcpHeaderPointer = (u_short*)(tcpHeader);
-	/* set pseudo Header */
-	memcpy(&pseudo_header.ip_src_addr, ipHeader->src_addr, sizeof(u_char) * 4);
-	memcpy(&pseudo_header.ip_dst_addr, ipHeader->dst_addr, sizeof(u_char) * 4);
-	pseudo_header.reserved = 0;
-	pseudo_header.protocol = ipHeader->protocol;
-	pseudo_header.tcpLength = htons(ntohs(ipHeader->totalLen) - 20);
-	/* sum pseudo Header */
-	for (int i = 0; i < 6; i++)
-	{
-		sum += *pseudoHeaderPointer;
-		pseudoHeaderPointer++;
-	}
-	u_int count = len >> 1;
+	tcp->th_sum = 0;
+	ph.ip_src_addr = ip->ip_src.s_addr;
+	ph.ip_dst_addr = ip->ip_dst.s_addr;
+	ph.reserved = 0;
+	ph.protocol = IPPRO_TCP;
+	ph.tcpLength = htons(ntohs(ip->ip_len) - LIBNET_IPV4_H);
+	/* sum tcp Header */
+	count = len >> 1;
+	pointer = (u_short *)tcp;
 	while (count--)
-	{
-		sum += *tcpHeaderPointer;
-		tcpHeaderPointer++;
-	}
+		sum += *pointer++;
 	if (len % 2)
-		sum += *tcpHeaderPointer;
+		sum += *pointer;
+	/* sum pseudo Header */
+	pointer = (u_short *)&ph;
+	for (int i = 0; i < 6; i++)
+		sum += *pointer++;
 	sum = (sum >> 16) + (sum & 0xffff);
 	sum += sum >> 16;
 	return ~sum & 0xffff;
 }
 
-u_short ipChecksum(Pip_header ipHeader)
+u_short checksum_ip(struct libnet_ipv4_hdr* ip)
 {
 	u_int sum = 0;
-	u_short* ipHeaderPointer = (u_short*)ipHeader;
-	ipHeader->checksum = 0;
+	u_short* ipHeaderPointer = (u_short*)ip;
+	ip->ip_sum = 0;
 	/* common ip header length 20Byes */
 	for (int i = 0; i < 10; i++)
 	{
