@@ -1,4 +1,1 @@
-https://www.winpcap.org/install/default.htm
-
-https://www.winpcap.org/devel.htm
-download developer pack
+this program only run on window and compiled by vs2019
