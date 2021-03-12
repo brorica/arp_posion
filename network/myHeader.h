@@ -1,20 +1,25 @@
 #include <pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <Windows.h>
 #include <winsock2.h>
 
 #define MACLEN 6
-#define ARPSIZE 28
-#define ETHERNETSIZE 14
+#define ARP_HEADER_SIZE 28
+#define ETHERNET_HEADER_SIZE 14
+#define ARP_PACKET_SIZE (ARP_HEADER_SIZE + ETHERNET_HEADER_SIZE)
+#define IP_HEADER_SIZE 20
+#define TCP_HEADER_SIZE 20
+#define TCP_PACKET_SIZE (ETHERNET_HEADER_SIZE + IP_HEADER_SIZE + TCP_HEADER_SIZE)
 
 typedef struct ethernet_header
 {
 	u_char dst_MAC[MACLEN];
 	u_char src_MAC[MACLEN];
-	u_short ether_Type;
-}ethernet_header, *Pethernet_header;
+	u_short etherType;
+#define IPV4 0x0800
+#define ARP 0x0806
+}ETHERNET_HEADER, *PETHERNET_HEADER;
 
 typedef struct arp_header
 {
@@ -23,40 +28,15 @@ typedef struct arp_header
 	u_char Hardware_size;
 	u_char Protocol_size;
 	u_short Opcode;	// 1 : request, 2 : reply
+#define REQUEST 0x0001
+#define REPLY 0x0002
 	u_char src_MAC[MACLEN];
 	u_char src_IP[4];
 	u_char dst_MAC[MACLEN];
 	u_char dst_IP[4];
-}arp_header, *Parp_header;
+}ARP_HEADER, *PARP_HEADER;
 
-/* IPv4 header */
-typedef struct ip_header {
-	u_char  version;        // Version (4 bits) + Internet header length (4 bits)
-	u_char  typeOfService;            // Type of service 
-	u_short totalLen;           // Total length 
-	u_short identification; // Identification
-	u_short flags;       // Flags (3 bits) + Fragment offset (13 bits)
-	u_char  ttl;            // Time to live
-	u_char  protocol;       // Protocol
-	u_short checksum;            // Header checksum
-	u_char  src_addr[4];    // Source address
-	u_char  dst_addr[4];    // Destination address
-}ip_header, *Pip_header;
-
-typedef struct tcp_header
-{
-	u_short src_port; // Source port
-	u_short dst_port; // Destination port
-	u_int sequenceNumber;
-	u_int acknowledgementNumber;
-	u_char headerLength;
-	u_char flags;
-	u_short windowSize;
-	u_short checksum;
-	u_short urgentPointer;
-}tcp_header, *Ptcp_header;
-
-typedef struct LANINFO
+typedef struct lanInfo
 {
 	IN_ADDR  myIP;
 	u_char myMAC[MACLEN];
@@ -66,19 +46,66 @@ typedef struct LANINFO
 	u_char gatewayMAC[MACLEN];
 }LANINFO, * PLANINFO;
 
-typedef struct ARPHEADER
+typedef struct arp_packet
 {
-	ethernet_header ethernet;
-	arp_header arp;
-}ARPHEADER, * PARPHEADER;
+    ETHERNET_HEADER ethernet;
+    ARP_HEADER arp;
+}ARP_PACKET, * PARP_PACKET;
 
-typedef struct TCPHEADER
+
+typedef struct ip_header {
+ #if (REG_DWORD  == REG_DWORD_LITTLE_ENDIAN)
+    u_char  ipHeaderLength:4,
+        ipVersion:4;
+#endif
+#if (REG_DWORD == REG_DWORD_BIG_ENDIAN)
+    u_char  ipVersion:4,
+        ipHeaderLength:4;
+#endif
+    u_char  typeOfService;
+    u_short totalLen;
+    u_short identifification;
+    u_short flags;
+    u_char  ttl;
+    u_char  protocol;
+#define IP_PROTOCOL_TCP 6
+    u_short checksum;
+    u_char  sourceIP[4];
+    u_char  destinationIP[4];
+}IP_HEADER, * PIP_HEADER;
+
+typedef struct tcp_header
 {
-	ethernet_header ethernet;
-	ip_header ip;
-	tcp_header tcp;
-}TCPHEADER, * PTCPHEADER;
+    u_short sourcePort;
+    u_short destinationPort;
+    u_int seq;
+    u_int ack;
+#if (REG_DWORD  == REG_DWORD_LITTLE_ENDIAN)
+    u_char  reserved:4,
+        dataOffset:4;
+#endif
+#if (REG_DWORD == REG_DWORD_BIG_ENDIAN)
+    u_char  dataOffset:4,
+        reserved:4;
+#endif
+    u_char flags;
+#ifndef TH_FIN
+#define TH_FIN    0x01
+#endif
+#ifndef TH_ACK
+#define TH_ACK    0x10
+#endif
+    u_short window;
+    u_short checksum;
+    u_short urgentPointer;
+}TCP_HEADER, * PTCP_HEADER;
 
+typedef struct TCP_PACKET
+{
+    ETHERNET_HEADER ethernet;
+    IP_HEADER ip;
+    TCP_HEADER tcp;
+}TCP_PACKET, * PTCP_PACKET;
 
 /* ChoiceDev.c */
 pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
@@ -91,16 +118,18 @@ char *iptos(u_long in);
 /* getMACAddress.c */
 int getMACAddress(pcap_t *handle, PLANINFO LanInfo);
 /* sendFakeARP.c */
-int setArpHeader(PARPHEADER header);
-int attackvictim(pcap_t* handle, PARPHEADER header, PLANINFO LanInfo);
-int attackRouter(pcap_t* handle, PARPHEADER header, PLANINFO LanInfo);
+int setArpHeader(PARP_HEADER arpHeader);
+int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo);
+int attackRouter(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo);
 /* checkARP */
-int checkVictim(Pethernet_header eh, PLANINFO LanInfo);
-int checkGateWay(Pethernet_header eh, PLANINFO LanInfo);
+int checkVictim(PETHERNET_HEADER eh, PLANINFO LanInfo);
+int checkGateWay(PETHERNET_HEADER eh, PLANINFO LanInfo);
 /* packetRedirect.c */
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo);
-/* 320Redirect.c */
-int packet_handler_redirect(pcap_t* handle, u_char* packet, struct pcap_pkthdr* header);
+/* 302 Redirect.c */
+int packet302Redirect(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo);
+/* forward.c */
+int packetForward(u_char* sendPacket, const u_char* packet);
 /* CalcChecksum.c */
-int tcpChecksum(Pip_header ipHeader, Ptcp_header tcpHeader, struct pcap_pkthdr* header, const u_char* packet, u_int redirectSiteLen);
-int ipChecksum(Pip_header ipHeader, u_int redirectSiteLen);
+u_short checksum_ip(PIP_HEADER ip);
+u_short checksum_tcp(PIP_HEADER ip, PTCP_HEADER tcp, u_short totalTcpLen);
