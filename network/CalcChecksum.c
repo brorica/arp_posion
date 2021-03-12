@@ -18,7 +18,7 @@ u_short checksum_tcp(PIP_HEADER ip, PTCP_HEADER tcp, const u_int len)
 	memcpy(ph.ip_src_addr, ip->sourceIP, sizeof(u_int));
 	memcpy(ph.ip_dst_addr, ip->destinationIP, sizeof(u_int));
 	ph.reserved = 0;
-	ph.protocol = IPPRO_TCP;
+	ph.protocol = IP_PROTOCOL_TCP;
 	ph.tcpLength = htons(ntohs(ip->totalLen) - LIBNET_IPV4_H);
 	/* sum tcp Header */
 	count = len >> 1;

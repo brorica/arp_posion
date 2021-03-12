@@ -9,7 +9,7 @@ int getMACAddress(pcap_t * handle, PLANINFO LanInfo)
     /* set Etherenet Header */
     memset(&(setHeader.ethernet.dst_MAC), 0xFF, sizeof(u_char) * MACLEN);
     memcpy(&(setHeader.ethernet.src_MAC), LanInfo->myMAC, sizeof(u_char) * MACLEN);
-    setHeader.ethernet.ether_Type = ntohs(ARP);
+    setHeader.ethernet.etherType = ntohs(ARP);
     /* set ARP Header */
     setHeader.arp.Hardware_type = ntohs(0x0001);
     setHeader.arp.Protocol_type = ntohs(0x0800);
@@ -35,10 +35,10 @@ int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
     memcpy(setHeader->arp.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
     memcpy(setHeader->arp.dst_IP, &LanInfo->victimIP, sizeof(IN_ADDR));
     /* fill Pacekt */
-    memcpy(arpPacket, &(setHeader->ethernet), sizeof(char) * ETHERNET_SIZE);
-    memcpy(arpPacket + ETHERNET_SIZE, &(setHeader->arp), sizeof(char) * ARP_SIZE);
+    memcpy(arpPacket, &(setHeader->ethernet), sizeof(char) * ETHERNET_HEADER_SIZE);
+    memcpy(arpPacket + ETHERNET_HEADER_SIZE, &(setHeader->arp), sizeof(char) * ARP_HEADER_SIZE);
     /* Send down the packet */
-    if (pcap_sendpacket(handle, arpPacket, ARP_SIZE + ETHERNET_SIZE) != 0)
+    if (pcap_sendpacket(handle, arpPacket, ARP_PACKET_SIZE) != 0)
     {
         fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
         return 0;
@@ -47,7 +47,7 @@ int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
     while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)
     {
         replyHeader = (PARP_PACKET)packet;
-        if (ntohs(replyHeader->ethernet.ether_Type) == ARP)
+        if (ntohs(replyHeader->ethernet.etherType) == ARP)
         {
             if (ntohs(replyHeader->arp.Opcode) == REPLY)
             {
@@ -76,10 +76,10 @@ int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
     memcpy(setHeader->arp.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
     memcpy(setHeader->arp.dst_IP, &LanInfo->gatewayIP, sizeof(IN_ADDR));
     /* fill Pacekt */
-    memcpy(arpPacket, &(setHeader->ethernet), sizeof(char) * ETHERNET_SIZE);
-    memcpy(arpPacket + ETHERNET_SIZE, &(setHeader->arp), sizeof(char) * ARP_SIZE);
+    memcpy(arpPacket, &(setHeader->ethernet), sizeof(char) * ETHERNET_HEADER_SIZE);
+    memcpy(arpPacket + ETHERNET_HEADER_SIZE, &(setHeader->arp), sizeof(char) * ARP_HEADER_SIZE);
     /* Send down the packet */
-    if (pcap_sendpacket(handle, arpPacket, ARP_SIZE + ETHERNET_SIZE) != 0)
+    if (pcap_sendpacket(handle, arpPacket, ARP_PACKET_SIZE) != 0)
     {
         fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
         return 0;
@@ -88,7 +88,7 @@ int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
     while ((res = pcap_next_ex(handle, &header, &packet)) > 0)
     {
         replyHeader = (PARP_PACKET)packet;
-        if (ntohs(replyHeader->ethernet.ether_Type) == ARP)
+        if (ntohs(replyHeader->ethernet.etherType) == ARP)
         {
             if (ntohs(replyHeader->arp.Opcode) == REPLY)
             {

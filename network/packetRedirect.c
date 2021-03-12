@@ -1,20 +1,20 @@
 #include "myHeader.h"
 
 int checkHttp(const u_char* packet) {
-	struct libnet_ethernet_hdr* eth;
-	struct libnet_ipv4_hdr* ip;
-	struct libnet_tcp_hdr* tcp;
+	PETHERNET_HEADER eth;
+	PIP_HEADER ip;
+	PTCP_HEADER tcp;
 	/* ethernet header */
-	eth = (struct libnet_ethernet_hdr*)packet;
+	eth = (PETHERNET_HEADER)packet;
 	/* ip header */
-	if (ntohs(eth->ether_type) != ETHERTYPE_IP) return 0;
-	ip = (struct libnet_ipv4_hdr*)(packet + 14);
+	if (ntohs(eth->etherType) != ETHERTYPE_IP) return 0;
+	ip = (PIP_HEADER)(packet + ETHERNET_HEADER_SIZE);
 	/* tcp header */
-	if (ntohs(ip->ip_len) <= 20 + 20 || ip->ip_p != IPPRO_TCP) return 0;
-	tcp = (struct libnet_tcp_hdr*)(packet + 34);
+	if (ntohs(ip->totalLen) <= IP_HEADER_SIZE + TCP_HEADER_SIZE || ip->protocol != IP_PROTOCOL_TCP) return 0;
+	tcp = (PTCP_HEADER)(packet + ETHERNET_HEADER_SIZE + IP_HEADER_SIZE);
 	/* tcp data */
-	const char* cp = (char*)(packet + 54);
-	if (memcmp(cp, "GET", 3)) return 0;
+	char* data = (char*)(packet + TCP_PACKET_SIZE);
+	if (memcmp(data, "GET", 3)) return 0;
 	return 1;
 }
 
@@ -23,9 +23,8 @@ int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* 
 {
 	PTCP_PACKET header;
 	header = (PTCP_PACKET)packet;
-	u_short ether_type = ntohs(header->ethernet.ether_Type);
-	/* ipv4 : 0x0800 */
-	if (ether_type == 0x0800)
+	u_short ether_type = ntohs(header->ethernet.etherType);
+	if (ether_type == IPV4)
 	{
 		if (checkVictim(&header->ethernet, LanInfo))
 		{

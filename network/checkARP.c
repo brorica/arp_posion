@@ -4,7 +4,7 @@ int checkARP(pcap_t* handle, const u_char* packet, PLANINFO LanInfo)
 {
 	PARP_PACKET header;
 	header = (PARP_PACKET)packet;
-	u_short ether_type = ntohs(header->ethernet.ether_Type);
+	u_short ether_type = ntohs(header->ethernet.etherType);
 	if (ether_type == ARP)
 	{
 		u_short OpCode = ntohs(header->arp.Opcode);

