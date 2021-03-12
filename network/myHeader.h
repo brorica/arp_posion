@@ -7,8 +7,9 @@
 #include "win32/libnet.h"
 
 #define MACLEN 6
-#define ARPSIZE 28
-#define ETHERNETSIZE 14
+#define ARP_SIZE 28
+#define ETHERNET_SIZE 14
+#define ARP_PACKET_SIZE (ARP_SIZE + ETHERNET_SIZE)
 #define IPPRO_TCP 6
 
 typedef struct ethernet_header
@@ -16,6 +17,8 @@ typedef struct ethernet_header
 	u_char dst_MAC[MACLEN];
 	u_char src_MAC[MACLEN];
 	u_short ether_Type;
+#define IPV4 0x8000
+#define ARP 0x0806
 }ETHERNET_HEADER, *PETHERNET_HEADER;
 
 typedef struct arp_header
@@ -25,6 +28,8 @@ typedef struct arp_header
 	u_char Hardware_size;
 	u_char Protocol_size;
 	u_short Opcode;	// 1 : request, 2 : reply
+#define REQUEST 0x0001
+#define REPLY 0x0002
 	u_char src_MAC[MACLEN];
 	u_char src_IP[4];
 	u_char dst_MAC[MACLEN];

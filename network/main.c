@@ -47,7 +47,7 @@ int main()
 	}
 	/* send fake arp packet */
 	ARP_PACKET arpPacket;
-	arpPacket.ethernet.ether_Type = ntohs(0x0806);
+	arpPacket.ethernet.ether_Type = ntohs(ARP);
 	setArpHeader(&arpPacket.arp);
 	attackvictim(handle, &arpPacket, &LanInfo);
 	Sleep(500);
