@@ -58,15 +58,22 @@ int main()
 	/* sniff packet */
 	struct pcap_pkthdr* header;
 	const u_char* packet;
+	PETHERNET_HEADER PetherentHeader;
 	printf("listen...");
 	while (1)
 	{
 		if (pcap_next_ex(handle, &header, &packet) == 1)
 		{
-			if (checkARP(handle, packet, &LanInfo))
-				continue;
-			else
+			PetherentHeader = (PETHERNET_HEADER)packet;
+			u_short ether_type = ntohs(PetherentHeader->etherType);
+			if (ether_type == ARP) 
+			{
+				checkSender(handle, packet, &LanInfo);
+			}
+			else if (ether_type == IPV4)
+			{
 				packetRedirect(handle, header, packet, &LanInfo);
+			}
 		}
 	}
 	pcap_close(handle);

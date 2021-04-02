@@ -30,7 +30,7 @@
     <ClCompile Include="getMACAddress.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="checkARP.c">
+    <ClCompile Include="checkSender.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="packetRedirect.c">
@@ -39,10 +39,10 @@
     <ClCompile Include="CalcChecksum.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Foward.c">
+    <ClCompile Include="sendFinPacketToGateWay.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="302Redirect.c">
+    <ClCompile Include="send302RedirectPacketToVictim.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

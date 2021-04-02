@@ -1,6 +1,6 @@
 #include "myHeader.h"
 #include <string.h>
-int packetForward(u_char* sendPacket, const u_char* packet)
+int sendFinPacketToGateWay(u_char* sendPacket, const u_char* packet)
 {
 	PIP_HEADER ip;
 	PTCP_HEADER tcp;

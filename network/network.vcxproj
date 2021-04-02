@@ -149,12 +149,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Foward.c" />
-    <ClCompile Include="302Redirect.c" />
+    <ClCompile Include="sendFinPacketToGateWay.c" />
+    <ClCompile Include="send302RedirectPacketToVictim.c" />
     <ClCompile Include="CalcChecksum.c" />
     <ClCompile Include="packetRedirect.c" />
     <ClCompile Include="ChoiceDev.c" />
-    <ClCompile Include="checkARP.c" />
+    <ClCompile Include="checkSender.c" />
     <ClCompile Include="getGateWayAddress.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="getMACAddress.c" />

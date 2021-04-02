@@ -5,7 +5,7 @@ int swapIP2(u_char* src, u_char* dst);
 int swapPort(u_short* src, u_short* dst);
 int swapSeqAck(u_int* seq, u_int* ack);
 
-int packet302Redirect(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo)
+int send302RedirectPacketToVictim(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo)
 {
 	PETHERNET_HEADER eth;
 	PIP_HEADER ip;
@@ -24,7 +24,6 @@ int packet302Redirect(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo
 	swapPort(&tcp->sourcePort, &tcp->destinationPort);
 	swapSeqAck(&tcp->seq, &tcp->ack);
 	/* set header */
-	ip->ttl = 128;
 	tcp->ack = htonl(ntohl(tcp->ack) + ntohs(ip->totalLen) - IP_HEADER_SIZE - TCP_HEADER_SIZE);
 	ip->totalLen = htons(IP_HEADER_SIZE + TCP_HEADER_SIZE + msgBackwardLen);
 	tcp->flags = TH_FIN | TH_ACK;

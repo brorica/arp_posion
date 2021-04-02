@@ -11,7 +11,7 @@
 #define IP_HEADER_SIZE 20
 #define TCP_HEADER_SIZE 20
 #define TCP_PACKET_SIZE (ETHERNET_HEADER_SIZE + IP_HEADER_SIZE + TCP_HEADER_SIZE)
-
+// 아 파일명 어떻게 정하지
 typedef struct ethernet_header
 {
 	u_char dst_MAC[MACLEN];
@@ -109,7 +109,7 @@ typedef struct TCP_PACKET
 
 /* ChoiceDev.c */
 pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
-int checkARP(pcap_t* handle, const u_char *packet, PLANINFO LanInfo);
+int checkSender(pcap_t* handle, const u_char *packet, PLANINFO LanInfo);
 int ipHeader(const u_char *packet);
 int tcpHeader(const u_char *packet);
 /* getGateWayAddress */
@@ -126,10 +126,10 @@ int checkVictim(PETHERNET_HEADER eh, PLANINFO LanInfo);
 int checkGateWay(PETHERNET_HEADER eh, PLANINFO LanInfo);
 /* packetRedirect.c */
 int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo);
-/* 302 Redirect.c */
-int packet302Redirect(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo);
+/* send302RedirectPacketToVictim.c */
+int send302RedirectPacketToVictim(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo);
 /* forward.c */
-int packetForward(u_char* sendPacket, const u_char* packet);
+int sendFinPacketToGateWay(u_char* sendPacket, const u_char* packet);
 /* CalcChecksum.c */
 u_short checksum_ip(PIP_HEADER ip);
 u_short checksum_tcp(PIP_HEADER ip, PTCP_HEADER tcp, u_short totalTcpLen);
