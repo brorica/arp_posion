@@ -107,29 +107,29 @@ typedef struct TCP_PACKET
     TCP_HEADER tcp;
 }TCP_PACKET, * PTCP_PACKET;
 
+extern PLANINFO LanInfo;
+
 /* ChoiceDev.c */
-pcap_if_t * ChoiceDev(pcap_if_t * alldevs);
-int checkARP(pcap_t* handle, const u_char *packet, PLANINFO LanInfo);
-int ipHeader(const u_char *packet);
-int tcpHeader(const u_char *packet);
+pcap_if_t * ChoiceDev(pcap_if_t * allDevs);
+int checkARP(pcap_t* handle, const u_char *packet);
 /* getGateWayAddress */
-int getGateWayAddress(pcap_if_t * choiceDev, PLANINFO LanInfo);
+int getGateWayAddress(pcap_if_t * choiceDev);
 char *iptos(u_long in);
 /* getMACAddress.c */
-int getMACAddress(pcap_t *handle, PLANINFO LanInfo);
+int getMACAddress(pcap_t *handle);
 /* sendFakeARP.c */
-int setArpHeader(PARP_HEADER arpHeader);
-int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo);
-int attackRouter(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo);
+int setArpHeader(PARP_HEADER ah);
+int attackvictim(pcap_t* handle, PARP_PACKET arpPacket);
+int attackRouter(pcap_t* handle, PARP_PACKET arpPacket);
 /* checkARP */
-int checkVictim(PETHERNET_HEADER eh, PLANINFO LanInfo);
-int checkGateWay(PETHERNET_HEADER eh, PLANINFO LanInfo);
+int checkVictim(PETHERNET_HEADER eh);
+int checkGateWay(PETHERNET_HEADER eh);
 /* packetRedirect.c */
-int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo);
+int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet);
 /* 302 Redirect.c */
-int packet302Redirect(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo);
+int packet302Redirect(u_char* sendPacket, const u_char* packet);
 /* forward.c */
 int packetForward(u_char* sendPacket, const u_char* packet);
 /* CalcChecksum.c */
-u_short checksum_ip(PIP_HEADER ip);
-u_short checksum_tcp(PIP_HEADER ip, PTCP_HEADER tcp, u_short totalTcpLen);
+u_short checksum_ip(PIP_HEADER ih);
+u_short checksum_tcp(PIP_HEADER ih, PTCP_HEADER th, u_short totalTcpLen);

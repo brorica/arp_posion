@@ -1,9 +1,9 @@
 #include "myHeader.h"
 
-int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader);
-int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader);
+int getVictimMAC(pcap_t* handle, PARP_PACKET setHeader);
+int getGatewayMAC(pcap_t* handle, PARP_PACKET setHeader);
 
-int getMACAddress(pcap_t * handle, PLANINFO LanInfo)
+int getMACAddress(pcap_t * handle)
 {
     ARP_PACKET setHeader;
     /* set Etherenet Header */
@@ -16,16 +16,16 @@ int getMACAddress(pcap_t * handle, PLANINFO LanInfo)
     setHeader.arp.Hardware_size = 0x06;
     setHeader.arp.Protocol_size = 0x04;
     setHeader.arp.Opcode = ntohs(REQUEST);
-    getVictimMAC(handle, LanInfo, &setHeader);
+    getVictimMAC(handle, &setHeader);
     Sleep(1000);
-    getGatewayMAC(handle, LanInfo, &setHeader);
+    getGatewayMAC(handle, &setHeader);
 	return 0;
 }
 
-int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
+int getVictimMAC(pcap_t* handle, PARP_PACKET setHeader)
 {
     int res, check;
-    PARP_PACKET replyHeader;
+    PARP_PACKET replyArpPacket;
     u_char arpPacket[ARP_PACKET_SIZE];
     struct pcap_pkthdr* header;
     const u_char * packet;
@@ -46,15 +46,15 @@ int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
     /* get reply packet */
     while ((res = pcap_next_ex(handle, &header, &packet)) >= 0)
     {
-        replyHeader = (PARP_PACKET)packet;
-        if (ntohs(replyHeader->ethernet.etherType) == ARP)
+        replyArpPacket = (PARP_PACKET)packet;
+        if (ntohs(replyArpPacket->ethernet.etherType) == ARP)
         {
-            if (ntohs(replyHeader->arp.Opcode) == REPLY)
+            if (ntohs(replyArpPacket->arp.Opcode) == REPLY)
             {
-                check = memcmp(replyHeader->arp.dst_MAC, LanInfo->myMAC,sizeof(u_char) * MACLEN);
+                check = memcmp(replyArpPacket->arp.dst_MAC, LanInfo->myMAC,sizeof(u_char) * MACLEN);
                 if (!check)
                 {
-                    memcpy(LanInfo->victimMAC, replyHeader->arp.src_MAC, sizeof(u_char) * MACLEN);
+                    memcpy(LanInfo->victimMAC, replyArpPacket->arp.src_MAC, sizeof(u_char) * MACLEN);
                     break;
                 }
             }
@@ -63,10 +63,10 @@ int getVictimMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
     return 0;
 }
 
-int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
+int getGatewayMAC(pcap_t* handle, PARP_PACKET setHeader)
 {
     int res, check;
-    PARP_PACKET replyHeader;
+    PARP_PACKET replyArpPacket;
     u_char arpPacket[ARP_PACKET_SIZE];
     struct pcap_pkthdr* header;
     const u_char* packet;
@@ -87,15 +87,15 @@ int getGatewayMAC(pcap_t* handle, PLANINFO LanInfo, PARP_PACKET setHeader)
     /* get reply packet */
     while ((res = pcap_next_ex(handle, &header, &packet)) > 0)
     {
-        replyHeader = (PARP_PACKET)packet;
-        if (ntohs(replyHeader->ethernet.etherType) == ARP)
+        replyArpPacket = (PARP_PACKET)packet;
+        if (ntohs(replyArpPacket->ethernet.etherType) == ARP)
         {
-            if (ntohs(replyHeader->arp.Opcode) == REPLY)
+            if (ntohs(replyArpPacket->arp.Opcode) == REPLY)
             {
-                check = memcmp(replyHeader->arp.dst_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
+                check = memcmp(replyArpPacket->arp.dst_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
                 if (!check)
                 {
-                    memcpy(LanInfo->gatewayMAC, replyHeader->arp.src_MAC, sizeof(u_char) * MACLEN);
+                    memcpy(LanInfo->gatewayMAC, replyArpPacket->arp.src_MAC, sizeof(u_char) * MACLEN);
                     break;
                 }
             }

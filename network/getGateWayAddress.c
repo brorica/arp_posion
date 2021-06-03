@@ -2,7 +2,7 @@
 #include <iphlpapi.h>
 #pragma comment(lib, "IPHLPAPI.lib")
 
-int getGateWayAddress(pcap_if_t * choiceDev, PLANINFO LanInfo)
+int getGateWayAddress(pcap_if_t * choiceDev)
 {
 	PIP_ADAPTER_INFO pAdapterInfo;
 	PIP_ADAPTER_INFO pAdapter = NULL;

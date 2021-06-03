@@ -1,44 +1,44 @@
 #include "myHeader.h"
 #include <string.h>
-int swapMAC(PETHERNET_HEADER eth, PLANINFO LanInfo);
+int swapMAC(PETHERNET_HEADER eth);
 int swapIP2(u_char* src, u_char* dst);
 int swapPort(u_short* src, u_short* dst);
 int swapSeqAck(u_int* seq, u_int* ack);
 
-int packet302Redirect(u_char* sendPacket, const u_char* packet, PLANINFO LanInfo)
+int packet302Redirect(u_char* sendPacket, const u_char* packet)
 {
-	PETHERNET_HEADER eth;
-	PIP_HEADER ip;
-	PTCP_HEADER tcp;
+	PETHERNET_HEADER eh;
+	PIP_HEADER ih;
+	PTCP_HEADER th;
 	const char msgBackward[128] = "HTTP/1.1 302 Found\r\nLocation: http://en.wikipedia.org/wiki/HTTP_302\r\n";
 	u_short msgBackwardLen = (u_short)strlen(msgBackward);
 	/* copy */
 	memcpy(sendPacket, packet, TCP_PACKET_SIZE);
-	eth = (PETHERNET_HEADER)sendPacket;
-	ip = (PIP_HEADER)(sendPacket + ETHERNET_HEADER_SIZE);
-	tcp = (PTCP_HEADER)((char*)ip + IP_HEADER_SIZE);
-	memcpy((char*)tcp + TCP_HEADER_SIZE, msgBackward, msgBackwardLen);
+	eh = (PETHERNET_HEADER)sendPacket;
+	ih = (PIP_HEADER)(sendPacket + ETHERNET_HEADER_SIZE);
+	th = (PTCP_HEADER)((char*)ih + IP_HEADER_SIZE);
+	memcpy((char*)th + TCP_HEADER_SIZE, msgBackward, msgBackwardLen);
 	/* swap */
-	swapMAC(eth, LanInfo);
-	swapIP2(ip->sourceIP, ip->destinationIP);
-	swapPort(&tcp->sourcePort, &tcp->destinationPort);
-	swapSeqAck(&tcp->seq, &tcp->ack);
+	swapMAC(eh);
+	swapIP2(ih->sourceIP, ih->destinationIP);
+	swapPort(&th->sourcePort, &th->destinationPort);
+	swapSeqAck(&th->seq, &th->ack);
 	/* set header */
-	ip->ttl = 128;
-	tcp->ack = htonl(ntohl(tcp->ack) + ntohs(ip->totalLen) - IP_HEADER_SIZE - TCP_HEADER_SIZE);
-	ip->totalLen = htons(IP_HEADER_SIZE + TCP_HEADER_SIZE + msgBackwardLen);
-	tcp->flags = TH_FIN | TH_ACK;
-	tcp->window = 0;
+	ih->ttl = 128;
+	th->ack = htonl(ntohl(th->ack) + ntohs(ih->totalLen) - IP_HEADER_SIZE - TCP_HEADER_SIZE);
+	ih->totalLen = htons(IP_HEADER_SIZE + TCP_HEADER_SIZE + msgBackwardLen);
+	th->flags = TH_FIN | TH_ACK;
+	th->window = 0;
 	/* set checksum */
-	ip->checksum = checksum_ip(ip);
-	tcp->checksum = checksum_tcp(ip, tcp, TCP_HEADER_SIZE + msgBackwardLen);
+	ih->checksum = checksum_ip(ih);
+	th->checksum = checksum_tcp(ih, th, TCP_HEADER_SIZE + msgBackwardLen);
 	printf("backward end\n");
 	return msgBackwardLen + TCP_PACKET_SIZE;
 }
-int swapMAC(PETHERNET_HEADER eth, PLANINFO LanInfo)
+int swapMAC(PETHERNET_HEADER eh)
 {
-	memcpy(eth->src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
-	memcpy(eth->dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
+	memcpy(eh->src_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
+	memcpy(eh->dst_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
 	return 0;
 }
 int swapIP2(u_char* src, u_char* dst)

