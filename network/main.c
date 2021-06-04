@@ -1,4 +1,4 @@
-#include "myHeader.h"
+#include "arpSpoofing.h"
 
 PLANINFO LanInfo;
 
@@ -7,7 +7,7 @@ int main()
 	pcap_if_t *alldevs, *choiceDev;
 	pcap_t* handle;
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char victimIP[16] = "192.168.50.135";
+	char victimIP[16];
 
 	/* Retrieve the device list from the local machine */
 	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
@@ -27,8 +27,8 @@ int main()
 	memset(&LanInfo, 0, sizeof(LanInfo));
 	LanInfo = (PLANINFO)malloc(sizeof(LANINFO));
 	/* Input victim's IP */
-	//printf("input victim's ip : ");
-	//scanf("%s", victimIP);
+	printf("input victim's ip : ");
+	scanf("%s", victimIP);
 	/* find Device's GateWay IP address */
 	getGateWayAddress(choiceDev);
 	LanInfo->victimIP.S_un.S_addr = inet_addr(victimIP);

@@ -1,4 +1,4 @@
-#include "myHeader.h"
+#include "arpSpoofing.h"
 
 int getVictimMAC(pcap_t* handle, PARP_PACKET setHeader);
 int getGatewayMAC(pcap_t* handle, PARP_PACKET setHeader);

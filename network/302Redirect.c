@@ -1,4 +1,4 @@
-#include "myHeader.h"
+#include "arpSpoofing.h"
 #include <string.h>
 int swapMAC(PETHERNET_HEADER eth);
 int swapIP2(u_char* src, u_char* dst);
@@ -31,7 +31,7 @@ int packet302Redirect(u_char* sendPacket, const u_char* packet)
 	th->window = 0;
 	/* set checksum */
 	ih->checksum = checksum_ip(ih);
-	th->checksum = checksum_tcp(ih, th, TCP_HEADER_SIZE + msgBackwardLen);
+	th->checksum = checksum_tcp(ih, th, TCP_HEADER_SIZE + msgBackwardLen);  
 	printf("backward end\n");
 	return msgBackwardLen + TCP_PACKET_SIZE;
 }
