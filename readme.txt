@@ -1,1 +1,0 @@
-this program only run on window and compiled by vs2019
